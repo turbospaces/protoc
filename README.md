@@ -19,4 +19,4 @@ This is alternative/minimalistic implementation of binary protocol, similar to p
 + natural support for server pushes (notifications)
  
 ##### samples
-[example of schema](http://github.com/turbospaces/protoc/tree/master/src/test/resources/example.proto)
+[example of schema](http://github.com/turbospaces/protoc/tree/master/src/test/resources/example.protoc)
