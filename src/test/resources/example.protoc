@@ -1,0 +1,45 @@
+package com.turbospaces.demo;
+
+message Ack {}
+
+message User {
+  string firstName = 1;
+  string secondName = 2;
+  string middleName = 3;
+  int32 age = 4;
+  bool enabled = 5;
+  double amount1 = 6;
+  float amount2 = 7;
+  decimal values = 8;
+  int64 timestamp = 9;
+  int16 shortNumber = 10;
+  byte oneByte = 11;
+  Address primaryAddress = 12;
+  set[Address] unsortedAddresses = 13;
+  list[Address] sortedAddresses = 14;
+  map[string,Address] zip2addresses = 15;
+  set[string] primitiveSet = 16;
+}
+
+message Address {
+  string zip = 1;
+}
+
+enum Colors {
+  GREEN = 1,
+  WRITE = 2,
+  YELLOW = 3,
+  BLACK = 4
+}
+
+message DuplicateUserError {}
+message SystemError {}
+
+alias User = Account;
+
+service AuthService {
+  def ping() : Ack;
+  def addUser(User) : Ack throws SystemError, DuplicateUser;
+  def getCurrentUser() : User throws SystemError;
+  def getAllUserByFirstName(String) : map[string, User] throws SystemError;
+}
