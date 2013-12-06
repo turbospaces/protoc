@@ -1,5 +1,7 @@
 package com.turbospaces.protoc;
 
+import java.util.Arrays;
+
 import com.google.common.base.Objects;
 
 public class MessageType {
@@ -58,8 +60,8 @@ public class MessageType {
         return Objects
                 .toStringHelper( this )
                 .add( "collectionType", collectionType )
-                .add( "typeReferences", getTypeRefs() )
-                .add( "fieldTypes", getTypes() )
+                .add( "typeReferences", Arrays.toString( getTypeRefs() ) )
+                .add( "fieldTypes", Arrays.toString( getTypes() ) )
                 .toString();
     }
 

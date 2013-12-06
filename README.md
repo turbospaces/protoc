@@ -11,6 +11,9 @@ This is alternative/minimalistic implementation of binary protocol, similar to p
 * set/list/map with generics
 * rpc service definitions
 
+#### languages
+* everything that supported by msgpack, initially java, ruby, javascript, C#, action script
+
 #### missing features in place
 + inheritance - completely missed in thrift, partially present in protobuf via extensions
 + natural RPC IDL (request/response/exceptions)

@@ -12,8 +12,10 @@ import com.turbospaces.protoc.ProtoParserParser.CollectionContext;
 import com.turbospaces.protoc.ProtoParserParser.Collection_mapContext;
 import com.turbospaces.protoc.ProtoParserParser.Collection_map_valueContext;
 import com.turbospaces.protoc.ProtoParserParser.Collection_typeContext;
+import com.turbospaces.protoc.ProtoParserParser.Constant_defContext;
 import com.turbospaces.protoc.ProtoParserParser.Enum_defContext;
 import com.turbospaces.protoc.ProtoParserParser.Enum_member_tagContext;
+import com.turbospaces.protoc.ProtoParserParser.Import_defContext;
 import com.turbospaces.protoc.ProtoParserParser.MapContext;
 import com.turbospaces.protoc.ProtoParserParser.Map_keyContext;
 import com.turbospaces.protoc.ProtoParserParser.Map_valueContext;
@@ -36,14 +38,33 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
         this.container = fileContainer;
     }
     @Override
+    public Void visitImport_def(Import_defContext ctx) {
+        String imp = ctx.import_value().IMPORT().getText().trim();
+        container.imports.add( imp );
+        logger.debug( "parsing import = {}...", imp );
+        return super.visitImport_def( ctx );
+    }
+    @Override
+    public Void visitConstant_def(Constant_defContext ctx) {
+        ConstantDescriptor c = new ConstantDescriptor();
+        c.qualifier = ctx.constant_name().getText().trim();
+        c.setValue( ctx.constant_type().TYPE_LITERAL().getText(), ctx.literal_value().getText() );
+        container.constants.put( c.qualifier, c );
+        logger.debug( "parsing constant = {}...", c.qualifier );
+        return super.visitConstant_def( ctx );
+    }
+    @Override
     public Void visitPackage_def(Package_defContext ctx) {
-        container.pkg = ctx.package_name().getText();
+        container.pkg = ctx.package_name().getText().trim();
         return super.visitPackage_def( ctx );
     }
     @Override
     public Void visitMessage_def(Message_defContext ctx) {
         MessageDescriptor m = new MessageDescriptor();
         m.qualifier = ctx.message_name().getText();
+        if ( ctx.message_parent() != null && ctx.message_parent().message_parent_message() != null ) {
+            m.parentQualifier = ctx.message_parent().message_parent_message().getText();
+        }
         container.messages.put( m.qualifier, m );
         logger.debug( "parsing message = {}...", m.qualifier );
         return super.visitMessage_def( ctx );
@@ -84,6 +105,9 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
         ServiceDescriptor s = new ServiceDescriptor();
         s.qualifier = ctx.service_name().getText();
         container.services.put( s.qualifier, s );
+        if ( ctx.service_parent() != null && ctx.service_parent().service_parent_message() != null ) {
+            s.parentQualifier = ctx.service_parent().service_parent_message().getText();
+        }
         logger.debug( "parsing service = {}...", s.qualifier );
         return super.visitService_def( ctx );
     }

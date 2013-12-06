@@ -9,7 +9,9 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<antlr4.visitor>true</antlr4.visitor>
 		<antlr4.listener>true</antlr4.listener>
+		<antlr4.treatWarningsAsErrors>true</antlr4.treatWarningsAsErrors>
 
+		<msgpack.version>0.6.8</msgpack.version>
 		<antlr4.version>4.1</antlr4.version>
 		<guava.version>15.0</guava.version>
 		<codemodel.version>2.6</codemodel.version>
@@ -18,6 +20,11 @@
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.msgpack</groupId>
+			<artifactId>msgpack</artifactId>
+			<version>${msgpack.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.antlr</groupId>
 			<artifactId>antlr4-runtime</artifactId>

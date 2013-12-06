@@ -35,6 +35,7 @@ public class BaseParserTest {
 
         MessageDescriptor ack = container.messages.get( "Ack" );
         MessageDescriptor user = container.messages.get( "User" );
+        assertEquals( "Ack", user.parentQualifier );
 
         assertEquals( 0, ack.fields.size() );
         assertEquals( 16, user.fields.size() );
@@ -90,7 +91,9 @@ public class BaseParserTest {
         assertEquals( FieldType.STRING, primitiveSet.type.getTypes()[0] );
         assertEquals( CollectionType.SET, primitiveSet.type.getCollectionType() );
 
-        Map<String, MethodDescriptor> methods = container.services.get( "AuthService" ).methods;
+        ServiceDescriptor authService = container.services.get( "AuthService" );
+        Map<String, MethodDescriptor> methods = authService.methods;
+        assertEquals( "MockService", authService.parentQualifier );
         MethodDescriptor ping = methods.get( "ping" );
         assertTrue( ping.request == null );
         assertTrue( ping.exceptions.size() == 0 );

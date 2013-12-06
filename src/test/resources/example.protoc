@@ -1,8 +1,14 @@
+import "com.turbospaces.commons";
+
 package com.turbospaces.demo;
+
+const bool C1 = true;
+const string C2 = "welcome";
+const double C3 = 123.14;
 
 message Ack {}
 
-message User {
+message User extends Ack {
   string firstName = 1;
   string secondName = 2;
   string middleName = 3;
@@ -37,7 +43,11 @@ message SystemError {}
 
 alias User = Account;
 
-service AuthService {
+service MockService {
+  def hello() : String;
+}
+
+service AuthService extends MockService {
   def ping() : Ack;
   def addUser(User) : Ack throws SystemError, DuplicateUser;
   def getCurrentUser() : User throws SystemError;

@@ -8,8 +8,8 @@ import java.util.Map;
 import com.google.common.base.Objects;
 
 public final class ServiceDescriptor {
-    public String qualifier;
-    public Map<String, MethodDescriptor> methods = new HashMap<String, MethodDescriptor>();
+    String qualifier, parentQualifier;
+    Map<String, MethodDescriptor> methods = new HashMap<String, MethodDescriptor>();
 
     public static final class MethodDescriptor {
         public String qualifier;
@@ -30,6 +30,6 @@ public final class ServiceDescriptor {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper( this ).add( "qualifier", qualifier ).add( "methods", methods ).toString();
+        return Objects.toStringHelper( this ).add( "qualifier", qualifier ).add( "parent", parentQualifier ).add( "methods", methods ).toString();
     }
 }
