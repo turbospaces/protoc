@@ -17,6 +17,7 @@
 		<codemodel.version>2.6</codemodel.version>
 		<slf4j.version>1.7.2</slf4j.version>
 		<logback.version>1.0.12</logback.version>
+		<freemarker.version>2.3.20</freemarker.version>
 	</properties>
 
 	<dependencies>
@@ -59,6 +60,12 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
+			<groupId>org.freemarker</groupId>
+			<artifactId>freemarker</artifactId>
+			<version>${freemarker.version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
@@ -89,6 +96,7 @@
 				<version>1.8</version>
 				<executions>
 					<execution>
+						<id>add-source</id>
 						<phase>generate-sources</phase>
 						<goals>
 							<goal>add-source</goal>
@@ -96,6 +104,18 @@
 						<configuration>
 							<sources>
 								<source>${project.basedir}/target/generated-sources/antlr4</source>
+							</sources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>add-test-source</id>
+						<phase>generate-test-sources</phase>
+						<goals>
+							<goal>add-test-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.basedir}/target/generated-test-sources/protocgen</source>
 							</sources>
 						</configuration>
 					</execution>

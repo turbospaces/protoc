@@ -23,6 +23,7 @@ import com.turbospaces.protoc.ProtoParserParser.Message_defContext;
 import com.turbospaces.protoc.ProtoParserParser.Message_field_defContext;
 import com.turbospaces.protoc.ProtoParserParser.Message_field_typeContext;
 import com.turbospaces.protoc.ProtoParserParser.Package_defContext;
+import com.turbospaces.protoc.ProtoParserParser.ProtoContext;
 import com.turbospaces.protoc.ProtoParserParser.Service_defContext;
 import com.turbospaces.protoc.ProtoParserParser.Service_method_defContext;
 import com.turbospaces.protoc.ProtoParserParser.Service_method_excpContext;
@@ -60,27 +61,31 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
     }
     @Override
     public Void visitMessage_def(Message_defContext ctx) {
-        MessageDescriptor m = new MessageDescriptor();
-        m.qualifier = ctx.message_name().getText();
+        String parent = null;
+        String name = ctx.message_name().getText();
+        ProtoContext pkgCtx = (ProtoContext) ctx.parent;
+        String pkg = pkgCtx.package_def().package_name().getText().trim();
         if ( ctx.message_parent() != null && ctx.message_parent().message_parent_message() != null ) {
-            m.parentQualifier = ctx.message_parent().message_parent_message().getText();
+            parent = ctx.message_parent().message_parent_message().getText();
         }
-        container.messages.put( m.qualifier, m );
-        logger.debug( "parsing message = {}...", m.qualifier );
+        MessageDescriptor m = new MessageDescriptor( name, parent, pkg );
+        container.messages.put( m.name, m );
+        logger.debug( "parsing message = {}...", m.name );
         return super.visitMessage_def( ctx );
     }
     @Override
     public Void visitMessage_field_def(Message_field_defContext ctx) {
-        FieldDescriptor desc = new FieldDescriptor();
-        desc.tag = Integer.parseInt( ctx.message_field_tag().getText() );
-        desc.qualifier = ctx.message_field_name().getText();
+        int tag = Integer.parseInt( ctx.message_field_tag().getText() );
+        String name = ctx.message_field_name().getText();
 
         Message_field_typeContext mft = ctx.message_field_type();
         Collection_map_valueContext cmp = mft.collection_map_value();
-        desc.type = parseGenericType( cmp );
+        MessageType type = parseGenericType( cmp );
+
+        FieldDescriptor desc = new FieldDescriptor( tag, name, type );
 
         Message_defContext mCtx = ( (Message_defContext) ctx.parent.getRuleContext() );
-        container.messages.get( mCtx.message_name().getText() ).fields.put( desc.tag, desc );
+        container.messages.get( mCtx.message_name().getText() ).addField( desc.getTag(), desc );
 
         logger.debug( ctx.toStringTree( parser ) );
         return super.visitMessage_field_def( ctx );
@@ -88,27 +93,30 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
     @Override
     public Void visitEnum_def(Enum_defContext ctx) {
         EnumDescriptor e = new EnumDescriptor();
-        e.qualifier = ctx.enum_name().getText();
-        logger.debug( "parsing enum = {}...", e.qualifier );
-        container.enums.put( e.qualifier, e );
+        e.name = ctx.enum_name().getText();
+        logger.debug( "parsing enum = {}...", e.name );
+        container.enums.put( e.name, e );
         return super.visitEnum_def( ctx );
     }
     @Override
     public Void visitEnum_member_tag(Enum_member_tagContext ctx) {
         Enum_defContext eCtx = (Enum_defContext) ctx.parent.parent;
         EnumDescriptor protoEnum = container.enums.get( eCtx.enum_name().getText() );
-        protoEnum.values.put( Integer.parseInt( ctx.enum_tag().TAG().getText() ), ctx.enum_member().IDENTIFIER().getText() );
+        protoEnum.members.put( Integer.parseInt( ctx.enum_tag().TAG().getText() ), ctx
+                .enum_member()
+                .IDENTIFIER()
+                .getText() );
         return super.visitEnum_member_tag( ctx );
     }
     @Override
     public Void visitService_def(Service_defContext ctx) {
         ServiceDescriptor s = new ServiceDescriptor();
-        s.qualifier = ctx.service_name().getText();
-        container.services.put( s.qualifier, s );
+        s.name = ctx.service_name().getText();
+        container.services.put( s.name, s );
         if ( ctx.service_parent() != null && ctx.service_parent().service_parent_message() != null ) {
-            s.parentQualifier = ctx.service_parent().service_parent_message().getText();
+            s.parent = ctx.service_parent().service_parent_message().getText();
         }
-        logger.debug( "parsing service = {}...", s.qualifier );
+        logger.debug( "parsing service = {}...", s.name );
         return super.visitService_def( ctx );
     }
     @Override
@@ -144,12 +152,11 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
      * TODO: apply recursive later if needed
      */
     private MessageType parseGenericType(Collection_map_valueContext cmp) {
-        MessageType type = new MessageType();
         if ( cmp.TYPE_LITERAL() != null ) {
-            type.setTypeReference( cmp.TYPE_LITERAL().getText(), CollectionType.NONE );
+            return new MessageType( cmp.TYPE_LITERAL().getText(), CollectionType.NONE );
         }
         else if ( cmp.IDENTIFIER() != null ) {
-            type.setTypeReference( cmp.IDENTIFIER().getText(), CollectionType.NONE );
+            return new MessageType( cmp.IDENTIFIER().getText(), CollectionType.NONE );
         }
         else {
             Collection_mapContext ctx = cmp.collection_map();
@@ -157,16 +164,19 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
             CollectionContext collectionCtx = ctx.collection();
             if ( collectionCtx != null ) {
                 Collection_typeContext typeContext = collectionCtx.collection_type();
-                CollectionType collectionType = CollectionType.valueOf( collectionCtx.COLLECTION_LITERAL().getText().toUpperCase() );
+                CollectionType collectionType = CollectionType.valueOf( collectionCtx
+                        .COLLECTION_LITERAL()
+                        .getText()
+                        .toUpperCase() );
 
                 if ( typeContext.TYPE_LITERAL() != null ) {
-                    type.setTypeReference( typeContext.TYPE_LITERAL().getText(), collectionType );
+                    return new MessageType( typeContext.TYPE_LITERAL().getText(), collectionType );
                 }
                 else {
-                    type.setTypeReference( typeContext.IDENTIFIER().getText(), collectionType );
+                    return new MessageType( typeContext.IDENTIFIER().getText(), collectionType );
                 }
             }
-            if ( mapCtx != null ) {
+            else {
                 Map_keyContext map_key = mapCtx.map_key();
                 Map_valueContext map_value = mapCtx.map_value();
 
@@ -187,9 +197,8 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
                 else {
                     value = map_value.IDENTIFIER().getText();
                 }
-                type.setTypeReference( key, value );
+                return new MessageType( key, value );
             }
         }
-        return type;
     }
 }

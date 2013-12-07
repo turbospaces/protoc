@@ -11,9 +11,8 @@ public class ConstantDescriptor {
     Object value;
 
     public void setValue(String typeRef, String text) {
-        type = new MessageType();
-        type.setTypeReference( typeRef, CollectionType.NONE );
-        switch ( type.getTypes()[0] ) {
+        type = new MessageType( typeRef, CollectionType.NONE );
+        switch ( type.getType() ) {
             case BOOL:
                 value = Boolean.parseBoolean( text );
                 break;
@@ -48,6 +47,11 @@ public class ConstantDescriptor {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper( this ).add( "qualifier", qualifier ).add( "type", type ).add( "value", value ).toString();
+        return Objects
+                .toStringHelper( this )
+                .add( "qualifier", qualifier )
+                .add( "type", type )
+                .add( "value", value )
+                .toString();
     }
 }

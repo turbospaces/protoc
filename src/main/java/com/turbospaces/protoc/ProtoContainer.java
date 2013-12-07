@@ -28,4 +28,11 @@ public class ProtoContainer {
                 .add( "services", services.values() )
                 .toString();
     }
+    
+    public static abstract class NamedDescriptor {
+        protected String name;
+        public String getName() {
+            return name;
+        }
+    }
 }
