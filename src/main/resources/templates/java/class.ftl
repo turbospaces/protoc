@@ -15,7 +15,9 @@ import com.google.common.base.Objects;
 <#assign fields = clazz.fieldDescriptors>
 public class ${clazz.name}<#if clazz.parent??> extends ${clazz.parent}</#if> implements GeneratedMessage {
     <#list fields.entrySet() as entry>
-    public static final int FIELD_${entry.value.name?upper_case} = ${entry.key};
+    <#assign v = entry.value>
+    <#assign k = entry.key>
+    public static final int FIELD_${v.name?upper_case} = ${k};
     </#list>
     
     private static final SortedMap<Integer, FieldDescriptor> DESCRIPTORS = new TreeMap<Integer, FieldDescriptor>();
@@ -24,29 +26,35 @@ public class ${clazz.name}<#if clazz.parent??> extends ${clazz.parent}</#if> imp
     <#list fields.entrySet() as entry>
     <#assign v = entry.value>
     <#assign k = entry.key>
-        <#if v.type.isMap()>DESCRIPTORS.put(${k}, new FieldDescriptor(${v.tag}, "${v.name}", new MessageType("${v.type.typeRef}", "${v.type.valueRef}")));<#rt>
-                     <#else>DESCRIPTORS.put(${k}, new FieldDescriptor(${v.tag}, "${v.name}", new MessageType("${v.type.typeRef}", CollectionType.${v.type.collectionType})));</#if>
+        <#if v.isMap()>DESCRIPTORS.put(${k}, new FieldDescriptor(${v.tag}, "${v.name}", new MessageType("${v.type.typeRef}", "${v.type.valueRef}")));<#rt>
+        <#elseif v.isCollection()>DESCRIPTORS.put(${k}, new FieldDescriptor(${v.tag}, "${v.name}", new MessageType("${v.type.typeRef}", CollectionType.${v.type.collectionType})));<#rt>
+        <#else>
+        </#if>
     </#list>
     }
     
     <#list fields.entrySet() as entry>
-    private ${entry.value.type.genericJavaTypeAsString()} ${entry.value.name};
+    <#assign v = entry.value>
+    private ${v.javaTypeAsString()} ${v.name};
     </#list>
     
     <#list fields.entrySet() as entry>
-    public ${clazz.name} set${entry.value.name?capitalize}(${entry.value.type.genericJavaTypeAsString()} val) {
-       this.${entry.value.name} = val;
+    <#assign v = entry.value>
+    public ${clazz.name} set${v.name?capitalize}(${v.javaTypeAsString()} val) {
+       this.${v.name} = val;
        return this;
     }
-    public ${entry.value.type.genericJavaTypeAsString()} get${entry.value.name?capitalize}() {
-       return this.${entry.value.name};
+    public ${v.javaTypeAsString()} get${v.name?capitalize}() {
+       return this.${v.name};
     }
     </#list>
     @Override
     public Object getFieldValue(int tag) {
         switch(tag) {
            <#list fields.entrySet() as entry>
-           case ${entry.key} : return this.${entry.value.name};
+           <#assign v = entry.value>
+           <#assign k = entry.key>
+           case ${k} : return this.${v.name};
            </#list>
            default : throw new RuntimeException("there is no such field with tag = " + tag);
         }
@@ -55,7 +63,9 @@ public class ${clazz.name}<#if clazz.parent??> extends ${clazz.parent}</#if> imp
     public void setFieldValue(int tag, Object value) {
         switch(tag) {
            <#list fields.entrySet() as entry>
-           case ${entry.key} : { this.${entry.value.name} = (${entry.value.type.genericJavaTypeAsString()}) value; break; }
+           <#assign v = entry.value>
+           <#assign k = entry.key>
+           case ${k} : { this.${v.name} = (${v.javaTypeAsString()}) value; break; }
            </#list>
            default : throw new RuntimeException("there is no such field with tag = " + tag);
         }
@@ -69,18 +79,34 @@ public class ${clazz.name}<#if clazz.parent??> extends ${clazz.parent}</#if> imp
        return DESCRIPTORS;
     }
     @Override
+    public int hashCode() {
+       <#if fields.entrySet()?has_content>
+       return Objects.hashCode(
+       <#list fields.entrySet() as entry>
+       <#assign v = entry.value>
+       this.${v.name}<#if entry_has_next>,</#if>
+       </#list>
+       );
+       <#else>
+       return super.hashCode();
+       </#if>
+    }
+    @Override
     public boolean equals(Object obj) {
        boolean equals = false;
        if(obj instanceof ${clazz.name}) {
          if (obj == this) {return true;}
+         // all field to be eqauls
          ${clazz.name} other = (${clazz.name}) obj;
          <#if fields.entrySet()?has_content>
          return
          <#list fields.entrySet() as entry>
-            Objects.equal(other.${entry.value.name}, this.${entry.value.name}) <#if entry_has_next>&&<#else>;</#if>
+         <#assign v = entry.value>
+            Objects.equal(other.${v.name}, this.${v.name})<#if entry_has_next> &&<#else>;</#if>
         </#list>
         <#else> return true;
         </#if>
+
        }
        return equals;
     }
@@ -88,7 +114,8 @@ public class ${clazz.name}<#if clazz.parent??> extends ${clazz.parent}</#if> imp
     public String toString() {
        return Objects.toStringHelper(this)
         <#list fields.entrySet() as entry>
-           .add("${entry.value.name}", this.${entry.value.name})
+        <#assign v = entry.value>
+           .add("${v.name}", this.${v.name})
         </#list>.toString();
     }
 }

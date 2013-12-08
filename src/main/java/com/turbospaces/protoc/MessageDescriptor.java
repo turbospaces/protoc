@@ -7,6 +7,7 @@ import java.util.Map;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.turbospaces.protoc.ProtoContainer.NamedDescriptor;
+import com.turbospaces.protoc.types.MessageType;
 
 public final class MessageDescriptor extends NamedDescriptor {
     private final String parent;

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.google.common.base.Objects;
 import com.turbospaces.protoc.ProtoContainer.NamedDescriptor;
+import com.turbospaces.protoc.types.MessageType;
 
 public final class ServiceDescriptor extends NamedDescriptor {
     String parent;

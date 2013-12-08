@@ -10,6 +10,9 @@ import com.turbospaces.protoc.ProtoContainer.NamedDescriptor;
 public final class EnumDescriptor extends NamedDescriptor {
     SortedMap<Integer, String> members = Maps.newTreeMap();
 
+    public EnumDescriptor(String name) {
+        this.name = name;
+    }
     @Override
     public String toString() {
         return Objects.toStringHelper( this ).add( "name", name ).add( "values", members ).toString();

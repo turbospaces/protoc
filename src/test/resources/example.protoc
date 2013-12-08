@@ -14,7 +14,7 @@ message User extends Ack {
   bool enabled = 5;
   double amount1 = 6;
   float amount2 = 7;
-  decimal values = 8;
+  bdecimal values = 8;
   int64 timestamp = 9;
   int16 shortNumber = 10;
   byte oneByte = 11;
@@ -30,6 +30,10 @@ message Address {
   string zip = 2;
   string country = 3;
   bool primary = 4;
+  set[string] details1 = 5;
+  list[string] details2 = 6;
+  map[string, int64] details3 = 7;
+  date now = 8;
 }
 
 enum Colors {

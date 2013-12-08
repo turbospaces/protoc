@@ -9,8 +9,7 @@ public interface GeneratedMessage {
     void setFieldValue(int tag, Object value);
     FieldDescriptor getFieldDescriptor(int tag);
     SortedMap<Integer, FieldDescriptor> getAllDescriptors();
-    @Override
-    String toString();
-    @Override
-    boolean equals(Object other);
+    @Override String toString();
+    @Override boolean equals(Object other);
+    @Override int hashCode();
 }

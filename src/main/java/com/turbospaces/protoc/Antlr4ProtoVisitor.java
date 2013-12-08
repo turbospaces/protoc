@@ -1,11 +1,12 @@
 package com.turbospaces.protoc;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.turbospaces.protoc.MessageType.CollectionType;
 import com.turbospaces.protoc.MessageDescriptor.FieldDescriptor;
 import com.turbospaces.protoc.ProtoParserParser.Alias_defContext;
 import com.turbospaces.protoc.ProtoParserParser.CollectionContext;
@@ -28,6 +29,9 @@ import com.turbospaces.protoc.ProtoParserParser.Service_defContext;
 import com.turbospaces.protoc.ProtoParserParser.Service_method_defContext;
 import com.turbospaces.protoc.ProtoParserParser.Service_method_excpContext;
 import com.turbospaces.protoc.ServiceDescriptor.MethodDescriptor;
+import com.turbospaces.protoc.types.CollectionMessageType;
+import com.turbospaces.protoc.types.MessageType;
+import com.turbospaces.protoc.types.ObjectMessageType;
 
 public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
     private final Logger logger = LoggerFactory.getLogger( getClass() );
@@ -41,17 +45,18 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
     @Override
     public Void visitImport_def(Import_defContext ctx) {
         String imp = ctx.import_value().IMPORT().getText().trim();
-        container.imports.add( imp );
         logger.debug( "parsing import = {}...", imp );
+        container.imports.add( imp );
         return super.visitImport_def( ctx );
     }
     @Override
     public Void visitConstant_def(Constant_defContext ctx) {
-        ConstantDescriptor c = new ConstantDescriptor();
-        c.qualifier = ctx.constant_name().getText().trim();
-        c.setValue( ctx.constant_type().TYPE_LITERAL().getText(), ctx.literal_value().getText() );
-        container.constants.put( c.qualifier, c );
-        logger.debug( "parsing constant = {}...", c.qualifier );
+        String name = ctx.constant_name().getText().trim();
+        logger.debug( "parsing constant = {}...", name );
+        String type = ctx.constant_type().TYPE_LITERAL().getText();
+        String value = ctx.literal_value().getText();
+        ConstantDescriptor c = new ConstantDescriptor( name, type, value );
+        container.constants.put( c.getName(), c );
         return super.visitConstant_def( ctx );
     }
     @Override
@@ -61,16 +66,21 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
     }
     @Override
     public Void visitMessage_def(Message_defContext ctx) {
-        String parent = null;
         String name = ctx.message_name().getText();
+        logger.debug( "parsing message = {}...", name );
+        String parent = null;
         ProtoContext pkgCtx = (ProtoContext) ctx.parent;
         String pkg = pkgCtx.package_def().package_name().getText().trim();
         if ( ctx.message_parent() != null && ctx.message_parent().message_parent_message() != null ) {
             parent = ctx.message_parent().message_parent_message().getText();
         }
         MessageDescriptor m = new MessageDescriptor( name, parent, pkg );
+
+        checkArgument( !container.messages.containsKey( name ), "message with name=% already defined", name );
+        checkArgument( !container.enums.containsKey( name ), "enum with name=% already defined", name );
+        checkArgument( !container.aliases.containsKey( name ), "alias with name=%s already defined", name );
+
         container.messages.put( m.name, m );
-        logger.debug( "parsing message = {}...", m.name );
         return super.visitMessage_def( ctx );
     }
     @Override
@@ -92,9 +102,14 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
     }
     @Override
     public Void visitEnum_def(Enum_defContext ctx) {
-        EnumDescriptor e = new EnumDescriptor();
-        e.name = ctx.enum_name().getText();
-        logger.debug( "parsing enum = {}...", e.name );
+        String name = ctx.enum_name().getText();
+        logger.debug( "parsing enum = {}...", name );
+        EnumDescriptor e = new EnumDescriptor( name );
+
+        checkArgument( !container.enums.containsKey( name ), "enum with name=% already defined", name );
+        checkArgument( !container.messages.containsKey( name ), "message with name=% already defined", name );
+        checkArgument( !container.aliases.containsKey( name ), "alias with name=%s already defined", name );
+
         container.enums.put( e.name, e );
         return super.visitEnum_def( ctx );
     }
@@ -148,15 +163,13 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
      * MAP[K,V] where key and map could be again primitives or type reference.
      * 
      * Nested type nesting inside maps/sets/lists is not supported atm.
-     * 
-     * TODO: apply recursive later if needed
      */
     private MessageType parseGenericType(Collection_map_valueContext cmp) {
         if ( cmp.TYPE_LITERAL() != null ) {
-            return new MessageType( cmp.TYPE_LITERAL().getText(), CollectionType.NONE );
+            return new ObjectMessageType( cmp.TYPE_LITERAL().getText() );
         }
         else if ( cmp.IDENTIFIER() != null ) {
-            return new MessageType( cmp.IDENTIFIER().getText(), CollectionType.NONE );
+            return new ObjectMessageType( cmp.IDENTIFIER().getText() );
         }
         else {
             Collection_mapContext ctx = cmp.collection_map();
@@ -164,16 +177,13 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
             CollectionContext collectionCtx = ctx.collection();
             if ( collectionCtx != null ) {
                 Collection_typeContext typeContext = collectionCtx.collection_type();
-                CollectionType collectionType = CollectionType.valueOf( collectionCtx
-                        .COLLECTION_LITERAL()
-                        .getText()
-                        .toUpperCase() );
+                boolean isSet = "set".equalsIgnoreCase( collectionCtx.COLLECTION_LITERAL().getText() );
 
                 if ( typeContext.TYPE_LITERAL() != null ) {
-                    return new MessageType( typeContext.TYPE_LITERAL().getText(), collectionType );
+                    return new CollectionMessageType( typeContext.TYPE_LITERAL().getText(), isSet );
                 }
                 else {
-                    return new MessageType( typeContext.IDENTIFIER().getText(), collectionType );
+                    return new CollectionMessageType( typeContext.IDENTIFIER().getText(), isSet );
                 }
             }
             else {
@@ -197,7 +207,7 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
                 else {
                     value = map_value.IDENTIFIER().getText();
                 }
-                return new MessageType( key, value );
+                return new MapMessageType( key, value );
             }
         }
     }

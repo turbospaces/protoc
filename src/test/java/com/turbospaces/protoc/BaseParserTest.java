@@ -11,11 +11,11 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.Test;
 
 import com.google.common.io.CharStreams;
-import com.turbospaces.protoc.MessageType.CollectionType;
-import com.turbospaces.protoc.MessageType.FieldType;
 import com.turbospaces.protoc.MessageDescriptor.FieldDescriptor;
 import com.turbospaces.protoc.ProtoParserParser.ProtoContext;
 import com.turbospaces.protoc.ServiceDescriptor.MethodDescriptor;
+import com.turbospaces.protoc.types.ObjectMessageType.CollectionType;
+import com.turbospaces.protoc.types.ObjectMessageType.FieldType;
 
 public class BaseParserTest {
     @Test

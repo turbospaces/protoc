@@ -10,8 +10,9 @@ import com.google.common.collect.Sets;
 public class ProtoContainer {
     String pkg;
     Set<String> imports = Sets.newLinkedHashSet();
-    Map<String, MessageDescriptor> messages = Maps.newHashMap();
     Map<String, ServiceDescriptor> services = Maps.newHashMap();
+    //
+    Map<String, MessageDescriptor> messages = Maps.newHashMap();
     Map<String, String> aliases = Maps.newHashMap();
     Map<String, EnumDescriptor> enums = Maps.newHashMap();
     Map<String, ConstantDescriptor> constants = Maps.newHashMap();

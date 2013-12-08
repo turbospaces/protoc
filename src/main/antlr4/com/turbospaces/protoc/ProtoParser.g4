@@ -81,7 +81,7 @@ IMPORT_LITERAL: 'import';
 BOOLEAN_LITERAL: 'true' | 'false';
 COLLECTION_LITERAL: 'set' | 'list';
 MAP_LITERAL: 'map';
-TYPE_LITERAL: 'byte' | 'int16' | 'int32' | 'int64' | 'float' | 'double' | 'string' | 'bool' | 'decimal' | 'binary' | 'date';
+TYPE_LITERAL: 'byte' | 'int16' | 'int32' | 'int64' | 'float' | 'double' | 'string' | 'bool' | 'bdecimal' | 'binteger' | 'binary' | 'date';
 IDENTIFIER: ('a'..'z' | 'A'..'Z' ) ('a'..'z' | 'A'..'Z' | '_' | '0'..'9')*;
 QUALIFIED_IDENTIFIER: IDENTIFIER (DOT IDENTIFIER)*;
 TAG: ('0' | '1'..'9' '0'..'9'*);
