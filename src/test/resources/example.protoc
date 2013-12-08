@@ -26,7 +26,10 @@ message User extends Ack {
 }
 
 message Address {
-  string zip = 1;
+  string address = 1;
+  string zip = 2;
+  string country = 3;
+  bool primary = 4;
 }
 
 enum Colors {
