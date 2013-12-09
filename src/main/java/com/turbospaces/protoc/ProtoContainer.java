@@ -8,14 +8,14 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 public class ProtoContainer {
-    String pkg;
-    Set<String> imports = Sets.newLinkedHashSet();
-    Map<String, ServiceDescriptor> services = Maps.newHashMap();
+    public String pkg;
+    public Set<String> imports = Sets.newLinkedHashSet();
+    public Map<String, ServiceDescriptor> services = Maps.newHashMap();
     //
-    Map<String, MessageDescriptor> messages = Maps.newHashMap();
-    Map<String, String> aliases = Maps.newHashMap();
-    Map<String, EnumDescriptor> enums = Maps.newHashMap();
-    Map<String, ConstantDescriptor> constants = Maps.newHashMap();
+    public Map<String, MessageDescriptor> messages = Maps.newHashMap();
+    public Map<String, String> aliases = Maps.newHashMap();
+    public Map<String, EnumDescriptor> enums = Maps.newHashMap();
+    public Map<String, ConstantDescriptor> constants = Maps.newHashMap();
 
     @Override
     public String toString() {

@@ -5,7 +5,7 @@ proto: (import_def)* (package_def)? (constant_def | enum_def |message_def | alia
 literal_value: BOOLEAN_LITERAL | INTEGER_LITERAL | STRING_LITERAL | FLOAT_LITERAL;
 
 import_def: IMPORT_LITERAL import_value ITEM_TERMINATOR;
-import_value: IMPORT;
+import_value: STRING_LITERAL;
 
 package_def: PACKAGE_LITERAL package_name ITEM_TERMINATOR;
 package_name: QUALIFIED_IDENTIFIER;
@@ -82,10 +82,10 @@ BOOLEAN_LITERAL: 'true' | 'false';
 COLLECTION_LITERAL: 'set' | 'list';
 MAP_LITERAL: 'map';
 TYPE_LITERAL: 'byte' | 'int16' | 'int32' | 'int64' | 'float' | 'double' | 'string' | 'bool' | 'bdecimal' | 'binteger' | 'binary' | 'date';
+
+TAG: ('0' | '1'..'9' ('0'..'9')*);
 IDENTIFIER: ('a'..'z' | 'A'..'Z' ) ('a'..'z' | 'A'..'Z' | '_' | '0'..'9')*;
-QUALIFIED_IDENTIFIER: IDENTIFIER (DOT IDENTIFIER)*;
-TAG: ('0' | '1'..'9' '0'..'9'*);
-IMPORT: '"' QUALIFIED_IDENTIFIER '"';
+QUALIFIED_IDENTIFIER: IDENTIFIER (DOT IDENTIFIER)+;
 
 INTEGER_LITERAL: HEX_LITERAL | OCTAL_LITERAL | DECIMAL_LITERAL;
 fragment HEX_DIGIT: ('0'..'9'|'a'..'f'|'A'..'F') ;

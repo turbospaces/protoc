@@ -1,4 +1,4 @@
-package com.turbospaces.protoc;
+package com.turbospaces.protoc.gen;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,13 +26,17 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
+import com.turbospaces.protoc.EnumDescriptor;
+import com.turbospaces.protoc.MessageDescriptor;
+import com.turbospaces.protoc.ProtoContainer;
+import com.turbospaces.protoc.ProtoParserLexer;
+import com.turbospaces.protoc.ProtoParserParser;
 import com.turbospaces.protoc.ProtoParserParser.ProtoContext;
 
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
-import freemarker.template.TemplateException;
 
 public class Generator {
     private static Logger logger = LoggerFactory.getLogger( Generator.class );
@@ -61,7 +65,7 @@ public class Generator {
         }
     }
 
-    public void generate() throws IOException, TemplateException {
+    public void generate() throws Exception {
         logger.info( "generating code into folder = {}", outDir );
         ProtoGenerationContext ctx = new ProtoGenerationContext();
         //
@@ -70,7 +74,7 @@ public class Generator {
         for ( int i = 0; i < paths.length; i++ ) {
             String path = paths[i];
             InputStream asStream = getClass().getClassLoader().getResourceAsStream( path );
-            Preconditions.checkNotNull( asStream, "no such classpath resource = {}", path );
+            Preconditions.checkNotNull( asStream, "no such classpath resource = %s", path );
             try {
                 String text = CharStreams.toString( new InputStreamReader( asStream ) );
                 logger.info( "parsing protoc file = {}", path );
@@ -90,6 +94,7 @@ public class Generator {
 
         for ( String path : allImports ) {
             InputStream asStream = getClass().getClassLoader().getResourceAsStream( path );
+            Preconditions.checkNotNull( asStream, "no such classpath resource = %s", path );
             try {
                 String text = CharStreams.toString( new InputStreamReader( asStream ) );
                 logger.info( "parsing imported protoc file = {}", path );
@@ -99,6 +104,8 @@ public class Generator {
                 asStream.close();
             }
         }
+
+        ctx.init( ctx );
 
         for ( ProtoContainer root : ctx.containers ) {
             Collection<EnumDescriptor> enums = root.enums.values();
@@ -116,7 +123,7 @@ public class Generator {
                 model.putAll( common );
                 enumTemplate.process( model, out );
 
-                String filename = d.name + '.' + lang;
+                String filename = d.getName() + '.' + lang;
                 File f = new File( pkg, filename );
                 f.getParentFile().mkdirs();
                 Files.write( out.toString().getBytes( Charsets.UTF_8 ), f );
@@ -129,7 +136,7 @@ public class Generator {
                 model.putAll( common );
                 classTemplate.process( model, out );
 
-                String filename = d.name + '.' + lang;
+                String filename = d.getName() + '.' + lang;
                 File f = new File( pkg, filename );
                 f.getParentFile().mkdirs();
                 Files.write( out.toString().getBytes( Charsets.UTF_8 ), f );
@@ -145,8 +152,8 @@ public class Generator {
         parser.removeErrorListeners();
         parser.addErrorListener( new BaseErrorListener() {
             @Override
-            public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
-                                    int charPositionInLine, String msg, RecognitionException e) {
+            public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg,
+                                    RecognitionException e) {
                 List<String> stack = ( (ProtoParserParser) recognizer ).getRuleInvocationStack();
                 Collections.reverse( stack );
                 logger.error( "rule stack: {}", stack );

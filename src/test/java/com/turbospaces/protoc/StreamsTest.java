@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.turbospaces.demo.Address;
+import com.turbospaces.protoc.serialization.Streams;
 
 public class StreamsTest {
 

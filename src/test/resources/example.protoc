@@ -1,3 +1,4 @@
+import "protoc_common.protoc";
 package com.turbospaces.demo;
 
 const bool C1 = true;

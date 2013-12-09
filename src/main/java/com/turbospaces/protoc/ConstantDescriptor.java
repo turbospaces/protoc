@@ -8,16 +8,17 @@ import java.text.ParseException;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 import com.turbospaces.protoc.ProtoContainer.NamedDescriptor;
-import com.turbospaces.protoc.types.ObjectMessageType;
+import com.turbospaces.protoc.types.FieldType;
 
 public class ConstantDescriptor extends NamedDescriptor {
-    ObjectMessageType type;
+    FieldType type;
     Object value;
 
     public ConstantDescriptor(String name, String typeRef, String text) {
         this.name = name;
-        type = new ObjectMessageType( typeRef );
-        switch ( type.getType() ) {
+        type = FieldType.valueOf( typeRef.toUpperCase() );
+
+        switch ( type ) {
             case BOOL:
                 value = Boolean.parseBoolean( text );
                 break;

@@ -1,12 +1,11 @@
 package com.turbospaces.protoc;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import freemarker.template.TemplateException;
+import com.turbospaces.protoc.gen.Generator;
 
 public class GeneratorTest {
     Generator g;
@@ -20,7 +19,7 @@ public class GeneratorTest {
     }
 
     @Test
-    public void test() throws IOException, TemplateException {
+    public void test() throws Exception {
         g.generate();
     }
 }

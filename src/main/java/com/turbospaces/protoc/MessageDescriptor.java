@@ -1,11 +1,12 @@
 package com.turbospaces.protoc;
 
+import static com.turbospaces.protoc.gen.GenException.check;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
 import com.turbospaces.protoc.ProtoContainer.NamedDescriptor;
 import com.turbospaces.protoc.types.MessageType;
 
@@ -20,7 +21,7 @@ public final class MessageDescriptor extends NamedDescriptor {
         this.pkg = pkg;
     }
     public void addField(int tag, FieldDescriptor desc) {
-        Preconditions.checkArgument( !fields.containsKey( tag ) );
+        check( !fields.containsKey( tag ), "message field with tag=%s already defined", tag );
         desc.messageDescriptor = this;
         fields.put( tag, desc );
     }
@@ -67,11 +68,6 @@ public final class MessageDescriptor extends NamedDescriptor {
 
     @Override
     public String toString() {
-        return Objects
-                .toStringHelper( this )
-                .add( "name", name )
-                .add( "parent", parent )
-                .add( "fields", fields )
-                .toString();
+        return Objects.toStringHelper( this ).add( "name", name ).add( "parent", parent ).add( "fields", fields ).toString();
     }
 }
