@@ -3,6 +3,8 @@ package com.turbospaces.protoc.types;
 import org.msgpack.template.Template;
 import org.msgpack.template.Templates;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.base.Throwables;
 import com.turbospaces.protoc.InitializingBean;
 import com.turbospaces.protoc.gen.GeneratedEnum;
@@ -12,7 +14,7 @@ import com.turbospaces.protoc.serialization.EnumTemplate;
 public class MapMessageType implements MessageType, InitializingBean {
     String kref, vref;
     FieldType ktype, vtype;
-    Template<?> template;
+    Supplier<Template<?>> template;
 
     public MapMessageType(String keyRef, String valueRef) {
         this.kref = keyRef;
@@ -23,12 +25,7 @@ public class MapMessageType implements MessageType, InitializingBean {
         this.vref = vref;
         this.ktype = ktype;
         this.vtype = vtype;
-        try {
-            setTemplate();
-        }
-        catch ( ClassNotFoundException e ) {
-            Throwables.propagate( e );
-        }
+        initTemplate();
     }
     public String getKeyTypeReference() {
         return kref;
@@ -83,7 +80,7 @@ public class MapMessageType implements MessageType, InitializingBean {
             }
             assert ( this.vtype != null );
         }
-        setTemplate();
+        initTemplate();
     }
     @Override
     public String javaTypeAsString() {
@@ -93,7 +90,7 @@ public class MapMessageType implements MessageType, InitializingBean {
     }
     @Override
     public Template<?> template() {
-        return template;
+        return template.get();
     }
     @Override
     public boolean isMap() {
@@ -104,32 +101,44 @@ public class MapMessageType implements MessageType, InitializingBean {
         return false;
     }
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    protected void setTemplate() throws ClassNotFoundException {
-        Template ktemplate = null, vtemplate = null;
-        {
-            if ( getKeyType().isComlex() ) {
-                if ( getKeyType() == FieldType.MESSAGE ) {}
-                else if ( getKeyType() == FieldType.ENUM ) {
-                    Class<? extends GeneratedEnum> enumClass = (Class<? extends GeneratedEnum>) Class.forName( getKeyTypeReference() );
-                    ktemplate = new EnumTemplate( enumClass );
-                }
+    protected void initTemplate() {
+        template = Suppliers.memoize( new Supplier<Template<?>>() {
+            @Override
+            public Template<?> get() {
+                for ( ;; )
+                    try {
+                        Template ktemplate = null, vtemplate = null;
+                        {
+                            if ( getKeyType().isComlex() ) {
+                                if ( getKeyType() == FieldType.MESSAGE ) {}
+                                else if ( getKeyType() == FieldType.ENUM ) {
+                                    Class<? extends GeneratedEnum> enumClass = (Class<? extends GeneratedEnum>) Class.forName( getKeyTypeReference() );
+                                    ktemplate = new EnumTemplate( enumClass );
+                                }
+                            }
+                            else {
+                                ktemplate = getKeyType().template();
+                            }
+                        }
+                        {
+                            if ( getValueType().isComlex() ) {
+                                if ( getValueType() == FieldType.MESSAGE ) {}
+                                else if ( getValueType() == FieldType.ENUM ) {
+                                    Class<? extends GeneratedEnum> enumClass = (Class<? extends GeneratedEnum>) Class
+                                            .forName( getValueTypeReference() );
+                                    vtemplate = new EnumTemplate( enumClass );
+                                }
+                            }
+                            else {
+                                vtemplate = getValueType().template();
+                            }
+                        }
+                        return Templates.tMap( ktemplate, vtemplate );
+                    }
+                    catch ( ClassNotFoundException e ) {
+                        Throwables.propagate( e );
+                    }
             }
-            else {
-                ktemplate = getKeyType().template();
-            }
-        }
-        {
-            if ( getValueType().isComlex() ) {
-                if ( getValueType() == FieldType.MESSAGE ) {}
-                else if ( getValueType() == FieldType.ENUM ) {
-                    Class<? extends GeneratedEnum> enumClass = (Class<? extends GeneratedEnum>) Class.forName( getValueTypeReference() );
-                    vtemplate = new EnumTemplate( enumClass );
-                }
-            }
-            else {
-                vtemplate = getValueType().template();
-            }
-        }
-        template = Templates.tMap( ktemplate, vtemplate );
+        } );
     }
 }

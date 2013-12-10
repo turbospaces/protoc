@@ -8,6 +8,7 @@ import java.util.Map;
 
 import com.google.common.base.Objects;
 import com.turbospaces.protoc.ProtoContainer.NamedDescriptor;
+import com.turbospaces.protoc.gen.GeneratedMessage;
 import com.turbospaces.protoc.types.MessageType;
 
 public final class MessageDescriptor extends NamedDescriptor {
@@ -22,7 +23,6 @@ public final class MessageDescriptor extends NamedDescriptor {
     }
     public void addField(int tag, FieldDescriptor desc) {
         check( !fields.containsKey( tag ), "message field with tag=%s already defined", tag );
-        desc.messageDescriptor = this;
         fields.put( tag, desc );
     }
     public Map<Integer, FieldDescriptor> getFieldDescriptors() {
@@ -41,12 +41,16 @@ public final class MessageDescriptor extends NamedDescriptor {
     public static final class FieldDescriptor extends NamedDescriptor {
         private final int tag;
         private final MessageType type;
-        private MessageDescriptor messageDescriptor;
+        private Class<? extends GeneratedMessage> genClass;
 
         public FieldDescriptor(int tag, String name, MessageType type) {
             this.tag = tag;
             this.name = name;
             this.type = type;
+        }
+        public FieldDescriptor(int tag, String name, MessageType type, Class<? extends GeneratedMessage> genClass) {
+            this( tag, name, type );
+            this.genClass = genClass;
         }
         public int getTag() {
             return tag;
@@ -57,8 +61,8 @@ public final class MessageDescriptor extends NamedDescriptor {
         public MessageType getType() {
             return type;
         }
-        public MessageDescriptor getMessageDescriptor() {
-            return messageDescriptor;
+        public Class<? extends GeneratedMessage> getGenClass() {
+            return genClass;
         }
         @Override
         public String toString() {

@@ -10,15 +10,18 @@ import com.turbospaces.protoc.MessageDescriptor.*;
 import com.turbospaces.protoc.*;
 import com.turbospaces.protoc.gen.*;
 import com.turbospaces.protoc.types.*;
+import com.turbospaces.protoc.serialization.*;
 
 <#assign fields = clazz.fieldDescriptors>
-public class ${clazz.name} extends <#if clazz.parent??>${clazz.parent}<#else>AbstractGeneratedMessage</#if> implements GeneratedMessage {
+public class ${clazz.name} extends <#if clazz.parent??>${clazz.parent}<#else>AbstractGeneratedMessage</#if> {
+    private static final long serialVersionUID = 1;
     <#list fields.entrySet() as entry>
     <#assign v = entry.value>
     <#assign k = entry.key>
     public static final int FIELD_${v.name?upper_case} = ${k};
     </#list>
     
+    private static final ObjectTemplate OBJ_TEMPLATE = new ObjectTemplate();
     private static final Collection<FieldDescriptor> DESCRIPTORS = new HashSet<FieldDescriptor>();
     
     <#list fields.entrySet() as entry>
@@ -65,6 +68,7 @@ public class ${clazz.name} extends <#if clazz.parent??>${clazz.parent}<#else>Abs
            default : throw new RuntimeException("there is no such field with tag = " + tag);
         }
     }
+    @SuppressWarnings("unchecked")
     @Override
     public void setFieldValue(int tag, Object value) {
         switch(tag) {
@@ -90,5 +94,9 @@ public class ${clazz.name} extends <#if clazz.parent??>${clazz.parent}<#else>Abs
     @Override
     public Collection<FieldDescriptor> getAllDescriptors() {
        return DESCRIPTORS;
+    }
+    @Override
+    public ObjectTemplate template() {
+       return OBJ_TEMPLATE;
     }
 }

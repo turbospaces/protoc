@@ -1,10 +1,13 @@
 package com.turbospaces.protoc.gen;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -50,8 +53,6 @@ public class Generator {
         this.outDir = outDir;
         this.paths = paths;
 
-        Preconditions.checkArgument( outDir.isDirectory() );
-
         Configuration cfg = new Configuration();
         cfg.setObjectWrapper( new BeansWrapper() );
         cfg.setDefaultEncoding( "UTF-8" );
@@ -65,16 +66,18 @@ public class Generator {
         }
     }
 
-    public void generate() throws Exception {
+    public void run() throws Exception {
+        outDir.mkdirs();
         logger.info( "generating code into folder = {}", outDir );
+
+        Preconditions.checkArgument( outDir.isDirectory() );
         ProtoGenerationContext ctx = new ProtoGenerationContext();
         //
         // parse straight protocol files for further stubs generation
         //
         for ( int i = 0; i < paths.length; i++ ) {
             String path = paths[i];
-            InputStream asStream = getClass().getClassLoader().getResourceAsStream( path );
-            Preconditions.checkNotNull( asStream, "no such classpath resource = %s", path );
+            InputStream asStream = loadResource( path );
             try {
                 String text = CharStreams.toString( new InputStreamReader( asStream ) );
                 logger.info( "parsing protoc file = {}", path );
@@ -93,8 +96,7 @@ public class Generator {
         }
 
         for ( String path : allImports ) {
-            InputStream asStream = getClass().getClassLoader().getResourceAsStream( path );
-            Preconditions.checkNotNull( asStream, "no such classpath resource = %s", path );
+            InputStream asStream = loadResource( path );
             try {
                 String text = CharStreams.toString( new InputStreamReader( asStream ) );
                 logger.info( "parsing imported protoc file = {}", path );
@@ -165,5 +167,22 @@ public class Generator {
         Antlr4ProtoVisitor visitor = new Antlr4ProtoVisitor( parser, container );
         visitor.visit( protoContext );
         return container;
+    }
+    public static InputStream loadResource(String path) throws FileNotFoundException {
+        File f = new File( path );
+        if ( f.exists() ) {
+            return new FileInputStream( f );
+        }
+        else {
+            InputStream asStream = Thread.currentThread().getContextClassLoader().getResourceAsStream( path );
+            Preconditions.checkNotNull( asStream, "no such classpath resource = %s", path );
+            return asStream;
+        }
+    }
+
+    public static void main(String... args) throws Exception {
+        File f = new File( args[0] );
+        Generator g = new Generator( f, Arrays.copyOfRange( args, 1, args.length ) );
+        g.run();
     }
 }

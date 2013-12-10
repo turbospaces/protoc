@@ -2,6 +2,10 @@ package com.turbospaces.protoc.types;
 
 import org.msgpack.template.ListTemplate;
 import org.msgpack.template.SetTemplate;
+import org.msgpack.template.Template;
+
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.turbospaces.protoc.gen.ProtoGenerationContext;
 
 public class CollectionMessageType extends ObjectMessageType {
@@ -11,17 +15,15 @@ public class CollectionMessageType extends ObjectMessageType {
         super( ref );
         this.isSet = setOtherwiseList;
     }
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     public CollectionMessageType(FieldType type, String ref, boolean setOtherwiseList) {
         super( type, ref );
         this.isSet = setOtherwiseList;
-        template = isSet ? new SetTemplate( template ) : new ListTemplate( template );
+        initiCollectionTemplate();
     }
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public void init(ProtoGenerationContext ctx) throws Exception {
         super.init( ctx );
-        template = isSet ? new SetTemplate( template ) : new ListTemplate( template );
+        initiCollectionTemplate();
     }
     @Override
     public String javaTypeAsString() {
@@ -34,5 +36,16 @@ public class CollectionMessageType extends ObjectMessageType {
     @Override
     public boolean isCollection() {
         return true;
+    }
+    private void initiCollectionTemplate() {
+        final Supplier<Template<?>> ptemplate = super.template;
+
+        template = Suppliers.memoize( new Supplier<Template<?>>() {
+            @SuppressWarnings({ "unchecked", "rawtypes" })
+            @Override
+            public Template<?> get() {
+                return isSet ? new SetTemplate( ptemplate.get() ) : new ListTemplate( ptemplate.get() );
+            }
+        } );
     }
 }

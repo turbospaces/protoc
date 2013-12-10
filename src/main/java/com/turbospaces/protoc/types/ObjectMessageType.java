@@ -1,15 +1,19 @@
 package com.turbospaces.protoc.types;
 
+import static com.google.common.base.Suppliers.memoize;
+
 import org.msgpack.template.Template;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
 import com.turbospaces.protoc.gen.GeneratedEnum;
 import com.turbospaces.protoc.gen.ProtoGenerationContext;
 import com.turbospaces.protoc.serialization.EnumTemplate;
+import com.turbospaces.protoc.serialization.ObjectTemplate;
 
 public class ObjectMessageType implements MessageType {
-    Template<?> template;
+    Supplier<Template<?>> template;
     FieldType type;
     String ref;
 
@@ -19,12 +23,7 @@ public class ObjectMessageType implements MessageType {
     public ObjectMessageType(FieldType type, String ref) {
         this.type = type;
         this.ref = ref;
-        try {
-            setTemplate();
-        }
-        catch ( ClassNotFoundException e ) {
-            Throwables.propagate( e );
-        }
+        initTemplate();
     }
     @Override
     public void init(ProtoGenerationContext ctx) throws Exception {
@@ -47,7 +46,7 @@ public class ObjectMessageType implements MessageType {
             }
         }
         assert ( this.type != null );
-        setTemplate();
+        initTemplate();
     }
     @Override
     public String javaTypeAsString() {
@@ -55,7 +54,7 @@ public class ObjectMessageType implements MessageType {
     }
     @Override
     public Template<?> template() {
-        return template;
+        return template.get();
     }
     public FieldType getType() {
         return type;
@@ -76,16 +75,30 @@ public class ObjectMessageType implements MessageType {
         return false;
     }
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    protected void setTemplate() throws ClassNotFoundException {
-        if ( getType().isComlex() ) {
-            if ( getType() == FieldType.MESSAGE ) {}
-            else if ( getType() == FieldType.ENUM ) {
-                Class<? extends GeneratedEnum> enumClass = (Class<? extends GeneratedEnum>) Class.forName( getTypeReference() );
-                template = new EnumTemplate( enumClass );
+    protected void initTemplate() {
+        template = memoize( new Supplier<Template<?>>() {
+            @Override
+            public Template<?> get() {
+                for ( ;; )
+                    try {
+                        Template<?> t = null;
+                        if ( getType().isComlex() ) {
+                            if ( getType() == FieldType.MESSAGE ) {
+                                t = new ObjectTemplate();
+                            }
+                            else if ( getType() == FieldType.ENUM ) {
+                                t = new EnumTemplate( (Class<? extends GeneratedEnum>) Class.forName( getTypeReference() ) );
+                            }
+                        }
+                        else {
+                            t = getType().template();
+                        }
+                        return t;
+                    }
+                    catch ( ClassNotFoundException e ) {
+                        Throwables.propagate( e );
+                    }
             }
-        }
-        else {
-            template = getType().template();
-        }
+        } );
     }
 }

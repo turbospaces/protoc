@@ -35,6 +35,8 @@ message Address {
   list[string] details2 = 6;
   map[string, int64] details3 = 7;
   date now = 8;
+  binteger bint = 9;
+  Colors color = 10;
 }
 
 enum Colors {

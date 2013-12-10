@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import com.turbospaces.protoc.gen.Generator;
 
+@org.junit.Ignore
 public class GeneratorTest {
     Generator g;
 
@@ -20,6 +21,6 @@ public class GeneratorTest {
 
     @Test
     public void test() throws Exception {
-        g.generate();
+        g.run();
     }
 }

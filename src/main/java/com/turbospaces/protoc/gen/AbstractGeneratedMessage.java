@@ -7,6 +7,7 @@ import java.util.Collection;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Objects.ToStringHelper;
+import com.google.common.base.Throwables;
 import com.turbospaces.protoc.MessageDescriptor.FieldDescriptor;
 import com.turbospaces.protoc.serialization.Streams;
 
@@ -19,7 +20,12 @@ public abstract class AbstractGeneratedMessage implements GeneratedMessage {
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         int size = in.available();
         byte[] bytes = new byte[size];
-        Streams.in( bytes,  );
+        try {
+            Streams.in( bytes, this );
+        }
+        catch ( Exception e ) {
+            Throwables.propagate( e );
+        }
     }
     @Override
     public int hashCode() {
@@ -45,12 +51,11 @@ public abstract class AbstractGeneratedMessage implements GeneratedMessage {
         Collection<FieldDescriptor> descriptors = getAllDescriptors();
         for ( FieldDescriptor f : descriptors ) {
             Object value = getFieldValue( f.getTag() );
-            Object otherValue = other.getFieldDescriptor( f.getTag() );
+            Object otherValue = other.getFieldValue( f.getTag() );
 
-            if ( value != null ) {
-                equals = equals && Objects.equal( value, otherValue );
-                if ( !equals )
-                    break;
+            equals = equals && Objects.equal( value, otherValue );
+            if ( !equals ) {
+                break;
             }
         }
         return equals;
