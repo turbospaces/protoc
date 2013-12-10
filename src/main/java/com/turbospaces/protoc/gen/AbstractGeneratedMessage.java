@@ -27,6 +27,23 @@ public abstract class AbstractGeneratedMessage implements GeneratedMessage {
             Throwables.propagate( e );
         }
     }
+    public AbstractGeneratedMessage clone() {
+        AbstractGeneratedMessage clone = null;
+        try {
+            clone = getClass().newInstance();
+        }
+        catch ( Exception e ) {
+            Throwables.propagate( e );
+        }
+        Collection<FieldDescriptor> descriptors = getAllDescriptors();
+        for ( FieldDescriptor f : descriptors ) {
+            Object obj = getFieldValue( f.getTag() );
+            if ( obj != null ) {
+                clone.setFieldValue( f.getTag(), obj );
+            }
+        }
+        return clone;
+    }
     @Override
     public int hashCode() {
         int result = 1;

@@ -29,9 +29,9 @@ public class ${clazz.name} extends <#if clazz.parent??>${clazz.parent}<#else>Abs
     <#assign k = entry.key>
     <#assign t = entry.value.type>
     public static final FieldDescriptor FIELD_DESCRIPTOR_${v.name?upper_case} = <#rt> 
-        <#lt><#if t.isMap()>new FieldDescriptor(${v.tag}, "${v.name}", new MapMessageType(FieldType.${t.keyType}, "${t.keyTypeReference}", FieldType.${t.valueType}, "${t.valueTypeReference}"));
-        <#lt><#elseif t.isCollection()>new FieldDescriptor(${v.tag}, "${v.name}", new CollectionMessageType(FieldType.${t.type}, "${t.typeReference}", ${t.set?c}));
-        <#lt><#else>new FieldDescriptor(${v.tag}, "${v.name}", new ObjectMessageType(FieldType.${t.type}, "${t.typeReference}"));
+        <#lt><#if t.isMap()>new FieldDescriptor(${clazz.name}.class, ${v.tag}, "${v.name}", new MapMessageType(FieldType.${t.keyType}, "${t.keyTypeReference}", FieldType.${t.valueType}, "${t.valueTypeReference}"));
+        <#lt><#elseif t.isCollection()>new FieldDescriptor(${clazz.name}.class, ${v.tag}, "${v.name}", new CollectionMessageType(FieldType.${t.type}, "${t.typeReference}", ${t.set?c}));
+        <#lt><#else>new FieldDescriptor(${clazz.name}.class, ${v.tag}, "${v.name}", new ObjectMessageType(FieldType.${t.type}, "${t.typeReference}"));
         </#if>
     </#list>
     
@@ -49,11 +49,11 @@ public class ${clazz.name} extends <#if clazz.parent??>${clazz.parent}<#else>Abs
     
     <#list fields.entrySet() as entry>
     <#assign v = entry.value>
-    public ${clazz.name} set${v.name?capitalize}(${v.type.javaTypeAsString()} val) {
+    public ${clazz.name} set${v.name?cap_first}(${v.type.javaTypeAsString()} val) {
        this.${v.name} = val;
        return this;
     }
-    public ${v.type.javaTypeAsString()} get${v.name?capitalize}() {
+    public ${v.type.javaTypeAsString()} get${v.name?cap_first}() {
        return this.${v.name};
     }
     </#list>

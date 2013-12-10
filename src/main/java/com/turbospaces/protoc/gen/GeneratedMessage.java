@@ -6,7 +6,7 @@ import java.util.Collection;
 import com.turbospaces.protoc.MessageDescriptor.FieldDescriptor;
 import com.turbospaces.protoc.serialization.ObjectTemplate;
 
-public interface GeneratedMessage extends Externalizable {
+public interface GeneratedMessage extends Externalizable, Cloneable {
     Object getFieldValue(int tag);
     void setFieldValue(int tag, Object value);
     FieldDescriptor getFieldDescriptor(int tag);

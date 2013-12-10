@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import com.turbospaces.protoc.gen.Generator;
 
-@org.junit.Ignore
+//@org.junit.Ignore
 public class GeneratorTest {
     Generator g;
 

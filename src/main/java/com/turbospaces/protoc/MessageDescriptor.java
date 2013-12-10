@@ -48,7 +48,7 @@ public final class MessageDescriptor extends NamedDescriptor {
             this.name = name;
             this.type = type;
         }
-        public FieldDescriptor(int tag, String name, MessageType type, Class<? extends GeneratedMessage> genClass) {
+        public FieldDescriptor(Class<? extends GeneratedMessage> genClass, int tag, String name, MessageType type) {
             this( tag, name, type );
             this.genClass = genClass;
         }

@@ -10,6 +10,7 @@ import com.turbospaces.protoc.InitializingBean;
 import com.turbospaces.protoc.gen.GeneratedEnum;
 import com.turbospaces.protoc.gen.ProtoGenerationContext;
 import com.turbospaces.protoc.serialization.EnumTemplate;
+import com.turbospaces.protoc.serialization.ObjectTemplate;
 
 public class MapMessageType implements MessageType, InitializingBean {
     String kref, vref;
@@ -110,7 +111,9 @@ public class MapMessageType implements MessageType, InitializingBean {
                         Template ktemplate = null, vtemplate = null;
                         {
                             if ( getKeyType().isComlex() ) {
-                                if ( getKeyType() == FieldType.MESSAGE ) {}
+                                if ( getKeyType() == FieldType.MESSAGE ) {
+                                    ktemplate = new ObjectTemplate();
+                                }
                                 else if ( getKeyType() == FieldType.ENUM ) {
                                     Class<? extends GeneratedEnum> enumClass = (Class<? extends GeneratedEnum>) Class.forName( getKeyTypeReference() );
                                     ktemplate = new EnumTemplate( enumClass );
@@ -122,7 +125,9 @@ public class MapMessageType implements MessageType, InitializingBean {
                         }
                         {
                             if ( getValueType().isComlex() ) {
-                                if ( getValueType() == FieldType.MESSAGE ) {}
+                                if ( getValueType() == FieldType.MESSAGE ) {
+                                    vtemplate = new ObjectTemplate();
+                                }
                                 else if ( getValueType() == FieldType.ENUM ) {
                                     Class<? extends GeneratedEnum> enumClass = (Class<? extends GeneratedEnum>) Class
                                             .forName( getValueTypeReference() );

@@ -33,14 +33,25 @@ public class ObjectTemplate extends AbstractTemplate<GeneratedMessage> {
             if ( val != null ) {
                 Template template = f.getType().template();
                 if ( template instanceof ObjectTemplate ) {
-                    LOGGER.trace( "write obj field[tag={},name={}] = {}...", f.getTag(), f.getName(), val );
+                    LOGGER.debug(
+                            "writing object={} complex field[tag={}, name={}] = {} ...",
+                            v.getClass().getSimpleName(),
+                            f.getTag(),
+                            f.getName(),
+                            val );
+
                     BufferPacker mbp = Streams.msgpack.createBufferPacker();
                     template.write( mbp, val );
                     byte[] mbytes = mbp.toByteArray();
                     pk.write( mbytes );
                 }
                 else {
-                    LOGGER.trace( "write primitive field[tag={},name={}] = {}...", f.getTag(), f.getName(), val );
+                    LOGGER.debug(
+                            "writing object={} primitive field[tag={}, name={}] = {}...",
+                            v.getClass().getSimpleName(),
+                            f.getTag(),
+                            f.getName(),
+                            val );
                     template.write( pk, val );
                 }
             }
@@ -78,8 +89,8 @@ public class ObjectTemplate extends AbstractTemplate<GeneratedMessage> {
                     mbu.read( value, template );
                 }
                 else {
-                    value = template.read( bu, null );
-                    LOGGER.trace( "read field[tag={},name={}] = {}", f.getTag(), f.getName(), value );
+                    LOGGER.debug( "read object={} field[tag={},name={}]", to.getClass().getSimpleName(), f.getTag(), f.getName() );
+                    value = template.read( bu, null, true );
                 }
                 to.setFieldValue( f.getTag(), value );
             }
