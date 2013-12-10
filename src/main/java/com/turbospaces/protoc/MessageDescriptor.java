@@ -8,7 +8,6 @@ import java.util.Map;
 
 import com.google.common.base.Objects;
 import com.turbospaces.protoc.ProtoContainer.NamedDescriptor;
-import com.turbospaces.protoc.gen.GeneratedMessage;
 import com.turbospaces.protoc.types.MessageType;
 
 public final class MessageDescriptor extends NamedDescriptor {
@@ -41,16 +40,11 @@ public final class MessageDescriptor extends NamedDescriptor {
     public static final class FieldDescriptor extends NamedDescriptor {
         private final int tag;
         private final MessageType type;
-        private Class<? extends GeneratedMessage> genClass;
 
         public FieldDescriptor(int tag, String name, MessageType type) {
             this.tag = tag;
             this.name = name;
             this.type = type;
-        }
-        public FieldDescriptor(Class<? extends GeneratedMessage> genClass, int tag, String name, MessageType type) {
-            this( tag, name, type );
-            this.genClass = genClass;
         }
         public int getTag() {
             return tag;
@@ -60,9 +54,6 @@ public final class MessageDescriptor extends NamedDescriptor {
         }
         public MessageType getType() {
             return type;
-        }
-        public Class<? extends GeneratedMessage> getGenClass() {
-            return genClass;
         }
         @Override
         public String toString() {

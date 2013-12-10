@@ -7,7 +7,6 @@ import org.msgpack.template.Template;
 import com.google.common.base.Objects;
 import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
-import com.turbospaces.protoc.gen.GeneratedEnum;
 import com.turbospaces.protoc.gen.ProtoGenerationContext;
 import com.turbospaces.protoc.serialization.EnumTemplate;
 import com.turbospaces.protoc.serialization.ObjectTemplate;
@@ -83,11 +82,12 @@ public class ObjectMessageType implements MessageType {
                     try {
                         Template<?> t = null;
                         if ( getType().isComlex() ) {
+                            Class c = Class.forName( getTypeReference() );
                             if ( getType() == FieldType.MESSAGE ) {
-                                t = new ObjectTemplate();
+                                t = new ObjectTemplate( c );
                             }
                             else if ( getType() == FieldType.ENUM ) {
-                                t = new EnumTemplate( (Class<? extends GeneratedEnum>) Class.forName( getTypeReference() ) );
+                                t = new EnumTemplate( c );
                             }
                         }
                         else {

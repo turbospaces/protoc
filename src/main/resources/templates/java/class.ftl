@@ -21,7 +21,7 @@ public class ${clazz.name} extends <#if clazz.parent??>${clazz.parent}<#else>Abs
     public static final int FIELD_${v.name?upper_case} = ${k};
     </#list>
     
-    private static final ObjectTemplate OBJ_TEMPLATE = new ObjectTemplate();
+    private static final ObjectTemplate OBJ_TEMPLATE = new ObjectTemplate(${clazz.name}.class);
     private static final Collection<FieldDescriptor> DESCRIPTORS = new HashSet<FieldDescriptor>();
     
     <#list fields.entrySet() as entry>
@@ -29,9 +29,9 @@ public class ${clazz.name} extends <#if clazz.parent??>${clazz.parent}<#else>Abs
     <#assign k = entry.key>
     <#assign t = entry.value.type>
     public static final FieldDescriptor FIELD_DESCRIPTOR_${v.name?upper_case} = <#rt> 
-        <#lt><#if t.isMap()>new FieldDescriptor(${clazz.name}.class, ${v.tag}, "${v.name}", new MapMessageType(FieldType.${t.keyType}, "${t.keyTypeReference}", FieldType.${t.valueType}, "${t.valueTypeReference}"));
-        <#lt><#elseif t.isCollection()>new FieldDescriptor(${clazz.name}.class, ${v.tag}, "${v.name}", new CollectionMessageType(FieldType.${t.type}, "${t.typeReference}", ${t.set?c}));
-        <#lt><#else>new FieldDescriptor(${clazz.name}.class, ${v.tag}, "${v.name}", new ObjectMessageType(FieldType.${t.type}, "${t.typeReference}"));
+        <#lt><#if t.isMap()>new FieldDescriptor(${v.tag}, "${v.name}", new MapMessageType(FieldType.${t.keyType}, "${t.keyTypeReference}", FieldType.${t.valueType}, "${t.valueTypeReference}"));
+        <#lt><#elseif t.isCollection()>new FieldDescriptor(${v.tag}, "${v.name}", new CollectionMessageType(FieldType.${t.type}, "${t.typeReference}", ${t.set?c}));
+        <#lt><#else>new FieldDescriptor(${v.tag}, "${v.name}", new ObjectMessageType(FieldType.${t.type}, "${t.typeReference}"));
         </#if>
     </#list>
     

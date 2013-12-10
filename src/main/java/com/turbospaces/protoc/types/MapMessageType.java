@@ -7,7 +7,6 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.base.Throwables;
 import com.turbospaces.protoc.InitializingBean;
-import com.turbospaces.protoc.gen.GeneratedEnum;
 import com.turbospaces.protoc.gen.ProtoGenerationContext;
 import com.turbospaces.protoc.serialization.EnumTemplate;
 import com.turbospaces.protoc.serialization.ObjectTemplate;
@@ -111,12 +110,13 @@ public class MapMessageType implements MessageType, InitializingBean {
                         Template ktemplate = null, vtemplate = null;
                         {
                             if ( getKeyType().isComlex() ) {
+                                Class c = Class.forName( getKeyTypeReference() );
                                 if ( getKeyType() == FieldType.MESSAGE ) {
-                                    ktemplate = new ObjectTemplate();
+                                    ktemplate = new ObjectTemplate( c );
                                 }
                                 else if ( getKeyType() == FieldType.ENUM ) {
-                                    Class<? extends GeneratedEnum> enumClass = (Class<? extends GeneratedEnum>) Class.forName( getKeyTypeReference() );
-                                    ktemplate = new EnumTemplate( enumClass );
+
+                                    ktemplate = new EnumTemplate( c );
                                 }
                             }
                             else {
@@ -125,13 +125,12 @@ public class MapMessageType implements MessageType, InitializingBean {
                         }
                         {
                             if ( getValueType().isComlex() ) {
+                                Class c = Class.forName( getValueTypeReference() );
                                 if ( getValueType() == FieldType.MESSAGE ) {
-                                    vtemplate = new ObjectTemplate();
+                                    vtemplate = new ObjectTemplate( c );
                                 }
                                 else if ( getValueType() == FieldType.ENUM ) {
-                                    Class<? extends GeneratedEnum> enumClass = (Class<? extends GeneratedEnum>) Class
-                                            .forName( getValueTypeReference() );
-                                    vtemplate = new EnumTemplate( enumClass );
+                                    vtemplate = new EnumTemplate( c );
                                 }
                             }
                             else {
