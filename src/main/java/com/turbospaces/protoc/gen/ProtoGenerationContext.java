@@ -99,6 +99,7 @@ public class ProtoGenerationContext implements InitializingBean {
             for ( MessageDescriptor m : messages ) {
                 Collection<FieldDescriptor> values = m.getFieldDescriptors().values();
 
+                // check for unique tag numbers
                 Collection<FieldDescriptor> allHierarchyFields = Sets.newHashSet();
                 String parent = m.getParent();
                 while ( parent != null ) {
@@ -109,10 +110,12 @@ public class ProtoGenerationContext implements InitializingBean {
                     allHierarchyFields.addAll( pdescriptor.getFieldDescriptors().values() );
                     parent = pdescriptor.getParent();
                 }
-
                 Set<Integer> uniqueTags = Sets.newHashSet();
                 for ( FieldDescriptor hf : allHierarchyFields ) {
-                    check( !uniqueTags.contains( hf.getTag() ), "hierarchy is not consistent, field with tag=%s already defined", hf.getTag() );
+                    check(
+                            !uniqueTags.contains( hf.getTag() ),
+                            "hierarchy is not consistent, field with tag=%s already defined",
+                            hf.getTag() );
                     uniqueTags.add( hf.getTag() );
                 }
 
@@ -139,17 +142,20 @@ public class ProtoGenerationContext implements InitializingBean {
             for ( MessageDescriptor m : messages ) {
                 Collection<FieldDescriptor> values = m.getFieldDescriptors().values();
                 for ( FieldDescriptor f : values ) {
-                    f.getType().init( this );
+                    f.init( this );
                 }
             }
             Collection<ServiceDescriptor> services = c.services.values();
             for ( ServiceDescriptor s : services ) {
                 Collection<MethodDescriptor> methods = s.getMethods().values();
                 for ( MethodDescriptor m : methods ) {
-                    if ( m.request != null ) {
-                        m.request.init( ctx );
+                    Set<String> exceptions = m.getExceptions();
+                    for ( String exception : exceptions ) {
+                        MessageDescriptor mdesc = allMessages.get( exception );
+                        check( mdesc != null, "there is no such exception=%s defined", exception );
+                        mdesc.setException( true );
                     }
-                    m.response.init( ctx );
+                    m.init( this );
                 }
             }
         }
@@ -195,7 +201,11 @@ public class ProtoGenerationContext implements InitializingBean {
             }
 
             if ( !exists ) {
-                throw new GenException( String.format( "Reference type %s is not defined in %s and imported %s", q, containers, imports ) );
+                throw new GenException( String.format(
+                        "Reference type %s is not defined in %s and imported %s",
+                        q,
+                        containers,
+                        imports ) );
             }
         }
     }

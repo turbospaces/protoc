@@ -6,6 +6,7 @@ package ${pkg};
 import java.util.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import com.turbospaces.protoc.MessageDescriptor.*;
 import com.turbospaces.protoc.*;
 import com.turbospaces.protoc.gen.*;
@@ -13,8 +14,9 @@ import com.turbospaces.protoc.types.*;
 import com.turbospaces.protoc.serialization.*;
 
 <#assign fields = clazz.fieldDescriptors>
-public class ${clazz.name} extends <#if clazz.parent??>${clazz.parent}<#else>AbstractGeneratedMessage</#if> {
-    private static final long serialVersionUID = 1;
+public class ${clazz.name} extends <#if clazz.parent??>${clazz.parent}<#else><#if clazz.exception>AbstractGeneratedException<#else>AbstractGeneratedMessage</#if></#if> {
+    private static final long serialVersionUID = 1L;
+
     <#list fields.entrySet() as entry>
     <#assign v = entry.value>
     <#assign k = entry.key>
@@ -23,6 +25,7 @@ public class ${clazz.name} extends <#if clazz.parent??>${clazz.parent}<#else>Abs
     
     private static final ObjectTemplate OBJ_TEMPLATE = new ObjectTemplate(${clazz.name}.class);
     private static final Collection<FieldDescriptor> DESCRIPTORS = new HashSet<FieldDescriptor>();
+    private static final AtomicReference<Collection<FieldDescriptor>> ALL_DESCRIPTORS = new AtomicReference<Collection<FieldDescriptor>>();
     
     <#list fields.entrySet() as entry>
     <#assign v = entry.value>
@@ -105,11 +108,15 @@ public class ${clazz.name} extends <#if clazz.parent??>${clazz.parent}<#else>Abs
     }
     @Override
     public Collection<FieldDescriptor> getAllDescriptors() {
-       Collection<FieldDescriptor> all = new LinkedList<FieldDescriptor>();
-       <#if clazz.parent??>       
-       all.addAll(super.getAllDescriptors());       
-       </#if>
-       all.addAll(DESCRIPTORS);
+       Collection<FieldDescriptor> all = ALL_DESCRIPTORS.get();
+       if(all == null) {
+          all = new LinkedList<FieldDescriptor>();
+          <#if clazz.parent??>       
+          all.addAll(super.getAllDescriptors());       
+          </#if>
+          all.addAll(DESCRIPTORS);
+       }
+       ALL_DESCRIPTORS.set(all);
        return all;
     }
     @Override

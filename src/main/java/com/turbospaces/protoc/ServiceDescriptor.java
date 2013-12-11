@@ -4,12 +4,13 @@ import static com.turbospaces.protoc.gen.GenException.check;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Sets;
 import com.turbospaces.protoc.ProtoContainer.NamedDescriptor;
+import com.turbospaces.protoc.gen.ProtoGenerationContext;
 import com.turbospaces.protoc.types.MessageType;
 
 public final class ServiceDescriptor extends NamedDescriptor {
@@ -33,12 +34,43 @@ public final class ServiceDescriptor extends NamedDescriptor {
         return parent;
     }
 
-    public static final class MethodDescriptor extends NamedDescriptor {
-        public MessageType request, response;
-        public List<String> exceptions = new LinkedList<String>();
+    public static final class MethodDescriptor extends NamedDescriptor implements InitializingBean {
+        private MessageType request, response;
+        Set<String> exceptions = Sets.newHashSet();
 
         public MethodDescriptor(String name) {
             this.name = name;
+        }
+        public void setRequestType(MessageType request) {
+            this.request = request;
+        }
+        public void setResponseType(MessageType response) {
+            this.response = response;
+        }
+        public MessageType getRequestType() {
+            return request;
+        }
+        public MessageType getResponseType() {
+            return response;
+        }
+        public Set<String> getExceptions() {
+            return exceptions;
+        }
+        public void addException(String exception) {
+            exceptions.add( exception );
+        }
+        @Override
+        public void init(ProtoGenerationContext ctx) throws Exception {
+            if ( request != null ) {
+                request.init( ctx );
+            }
+            response.init( ctx );
+            Set<String> qualified = Sets.newHashSet();
+            for ( String exc : exceptions ) {
+                String q = ctx.qualifiedMessageReference( exc );
+                qualified.add(q);
+            }
+            exceptions = qualified;
         }
         @Override
         public String toString() {
@@ -54,6 +86,11 @@ public final class ServiceDescriptor extends NamedDescriptor {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper( this ).add( "name", name ).add( "parent", parent ).add( "methods", methods ).toString();
+        return Objects
+                .toStringHelper( this )
+                .add( "name", name )
+                .add( "parent", parent )
+                .add( "methods", methods )
+                .toString();
     }
 }

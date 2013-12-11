@@ -63,7 +63,7 @@ service MockService {
 
 service AuthService extends MockService {
   def ping() : Ack;
-  def addUser(User) : Ack throws SystemError, DuplicateUser;
+  def addUser(User) : Ack throws SystemError, DuplicateUserError;
   def getCurrentUser() : User throws SystemError;
   def getAllUserByFirstName(String) : map[string, User] throws SystemError;
 }

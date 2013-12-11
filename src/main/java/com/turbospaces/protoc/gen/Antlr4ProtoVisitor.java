@@ -140,7 +140,10 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
     public Void visitEnum_member_tag(Enum_member_tagContext ctx) {
         Enum_defContext eCtx = (Enum_defContext) ctx.parent.parent;
         EnumDescriptor protoEnum = container.enums.get( eCtx.enum_name().getText() );
-        protoEnum.addMember( Integer.parseInt( ctx.enum_tag().TAG().getText() ), ctx.enum_member().IDENTIFIER().getText() );
+        protoEnum.addMember( Integer.parseInt( ctx.enum_tag().TAG().getText() ), ctx
+                .enum_member()
+                .IDENTIFIER()
+                .getText() );
         return super.visitEnum_member_tag( ctx );
     }
     @Override
@@ -165,13 +168,13 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
 
         MethodDescriptor m = new MethodDescriptor( name );
         if ( ctx.service_method_req().collection_map_value() != null ) {
-            m.request = parseGenericType( ctx.service_method_req().collection_map_value() );
+            m.setRequestType( parseGenericType( ctx.service_method_req().collection_map_value() ) );
         }
-        m.response = parseGenericType( ctx.service_method_resp().collection_map_value() );
+        m.setResponseType( parseGenericType( ctx.service_method_resp().collection_map_value() ) );
 
         List<Service_method_excpContext> excpCtxs = ctx.service_method_throws().service_method_excp();
         for ( Service_method_excpContext excpCtx : excpCtxs ) {
-            m.exceptions.add( excpCtx.IDENTIFIER().getText() );
+            m.addException( excpCtx.IDENTIFIER().getText() );
         }
 
         Service_defContext sCtx = (Service_defContext) ctx.parent.getRuleContext();

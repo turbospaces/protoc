@@ -8,11 +8,13 @@ import java.util.Map;
 
 import com.google.common.base.Objects;
 import com.turbospaces.protoc.ProtoContainer.NamedDescriptor;
+import com.turbospaces.protoc.gen.ProtoGenerationContext;
 import com.turbospaces.protoc.types.MessageType;
 
 public final class MessageDescriptor extends NamedDescriptor {
     private final String parent;
     private final String pkg;
+    private boolean isException;
     private final Map<Integer, FieldDescriptor> fields = new HashMap<Integer, FieldDescriptor>();
 
     public MessageDescriptor(String name, String parent, String pkg) {
@@ -36,8 +38,14 @@ public final class MessageDescriptor extends NamedDescriptor {
     public String getPkg() {
         return pkg;
     }
+    public boolean isException() {
+        return isException;
+    }
+    public void setException(boolean isException) {
+        this.isException = isException;
+    }
 
-    public static final class FieldDescriptor extends NamedDescriptor {
+    public static final class FieldDescriptor extends NamedDescriptor implements InitializingBean {
         private final int tag;
         private final MessageType type;
 
@@ -54,6 +62,10 @@ public final class MessageDescriptor extends NamedDescriptor {
         }
         public MessageType getType() {
             return type;
+        }
+        @Override
+        public void init(ProtoGenerationContext ctx) throws Exception {
+            type.init( ctx );
         }
         @Override
         public String toString() {

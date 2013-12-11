@@ -36,6 +36,7 @@ import com.turbospaces.protoc.ProtoContainer;
 import com.turbospaces.protoc.ProtoParserLexer;
 import com.turbospaces.protoc.ProtoParserParser;
 import com.turbospaces.protoc.ProtoParserParser.ProtoContext;
+import com.turbospaces.protoc.ServiceDescriptor;
 
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.ext.beans.BeansWrapper;
@@ -46,7 +47,7 @@ public class Generator {
     private static Logger logger = LoggerFactory.getLogger( Generator.class );
     private File outDir;
     private String[] paths;
-    private Template enumTemplate, classTemplate, protoTemplate;
+    private Template enumTemplate, classTemplate, protoTemplate, serviceTemplate;
     private String lang = "java";
     private String version = "0.1-SNAPSHOT";
 
@@ -62,6 +63,7 @@ public class Generator {
             enumTemplate = cfg.getTemplate( lang + "/enum.ftl" );
             classTemplate = cfg.getTemplate( lang + "/class.ftl" );
             protoTemplate = cfg.getTemplate( lang + "/proto.ftl" );
+            serviceTemplate = cfg.getTemplate( lang + "/service.ftl" );
         }
         catch ( IOException e ) {
             Throwables.propagate( e );
@@ -125,6 +127,7 @@ public class Generator {
         for ( ProtoContainer root : ctx.containers ) {
             Collection<EnumDescriptor> enums = root.enums.values();
             Collection<MessageDescriptor> messages = root.messages.values();
+            Collection<ServiceDescriptor> services = root.services.values();
             File pkg = new File( outDir, root.pkg.replace( '.', File.separatorChar ) );
             pkg.mkdirs();
             Map<String, Object> common = Maps.newHashMap();
@@ -169,6 +172,19 @@ public class Generator {
                 f.getParentFile().mkdirs();
                 Files.write( out.toString().getBytes( Charsets.UTF_8 ), f );
             }
+
+            for ( ServiceDescriptor s : services ) {
+                StringWriter out = new StringWriter();
+                Map<String, Object> model = Maps.newHashMap();
+                model.put( "service", s );
+                model.putAll( common );
+                serviceTemplate.process( model, out );
+
+                String filename = s.getName() + '.' + lang;
+                File f = new File( pkg, filename );
+                f.getParentFile().mkdirs();
+                Files.write( out.toString().getBytes( Charsets.UTF_8 ), f );
+            }
         }
     }
     public static ProtoContainer parse(String text) {
@@ -180,8 +196,8 @@ public class Generator {
         parser.removeErrorListeners();
         parser.addErrorListener( new BaseErrorListener() {
             @Override
-            public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg,
-                                    RecognitionException e) {
+            public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
+                                    int charPositionInLine, String msg, RecognitionException e) {
                 List<String> stack = ( (ProtoParserParser) recognizer ).getRuleInvocationStack();
                 Collections.reverse( stack );
                 logger.error( "rule stack: {}", stack );

@@ -1,9 +1,10 @@
 package com.turbospaces.protoc.gen;
 
-public abstract class AbstractGeneratedMessage implements GeneratedMessage {
+@SuppressWarnings("serial")
+public abstract class AbstractGeneratedException extends Exception implements GeneratedMessage {
     @Override
-    public AbstractGeneratedMessage clone() {
-        return (AbstractGeneratedMessage) GeneratedMessage.Util.clone( this );
+    public AbstractGeneratedException clone() {
+        return (AbstractGeneratedException) GeneratedMessage.Util.clone( this );
     }
     @Override
     public int hashCode() {
