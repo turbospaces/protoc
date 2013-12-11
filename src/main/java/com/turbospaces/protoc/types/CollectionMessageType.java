@@ -1,12 +1,11 @@
 package com.turbospaces.protoc.types;
 
-import org.msgpack.template.ListTemplate;
-import org.msgpack.template.SetTemplate;
 import org.msgpack.template.Template;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.turbospaces.protoc.gen.ProtoGenerationContext;
+import com.turbospaces.protoc.serialization.CollectionTemplate;
 
 public class CollectionMessageType extends ObjectMessageType {
     private boolean isSet;
@@ -44,7 +43,7 @@ public class CollectionMessageType extends ObjectMessageType {
             @SuppressWarnings({ "unchecked", "rawtypes" })
             @Override
             public Template<?> get() {
-                return isSet ? new SetTemplate( ptemplate.get() ) : new ListTemplate( ptemplate.get() );
+                return new CollectionTemplate( ptemplate.get(), isSet );
             }
         } );
     }

@@ -5,11 +5,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.util.Collection;
 
-import org.msgpack.packer.BufferPacker;
 import org.msgpack.packer.Packer;
 import org.msgpack.template.AbstractTemplate;
-import org.msgpack.template.ListTemplate;
-import org.msgpack.template.SetTemplate;
 import org.msgpack.template.Template;
 import org.msgpack.unpacker.BufferUnpacker;
 import org.msgpack.unpacker.Unpacker;
@@ -24,6 +21,9 @@ public class ObjectTemplate extends AbstractTemplate<GeneratedMessage> {
     public ObjectTemplate(Class<? extends GeneratedMessage> owner) {
         this.owner = owner;
     }
+    public Class<? extends GeneratedMessage> getOwner() {
+        return owner;
+    }
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public void write(Packer pk, GeneratedMessage v, boolean required) throws IOException {
@@ -36,11 +36,8 @@ public class ObjectTemplate extends AbstractTemplate<GeneratedMessage> {
             if ( val != null ) {
                 Template template = f.getType().template();
                 if ( template instanceof ObjectTemplate ) {
-                    BufferPacker mbp = Streams.msgpack.createBufferPacker();
-                    template.write( mbp, val );
-                    byte[] mbytes = mbp.toByteArray();
-                    pk.write( mbytes );
-                    System.out.println( mbytes.length );
+                    ObjectTemplate ot = (ObjectTemplate) template;
+                    Streams.write( pk, ot, (GeneratedMessage) val );
                 }
                 else {
                     template.write( pk, val );
@@ -74,15 +71,8 @@ public class ObjectTemplate extends AbstractTemplate<GeneratedMessage> {
             if ( !nil ) {
                 Object value = null;
                 if ( template instanceof ObjectTemplate ) {
-                    byte[] arr = u.readByteArray();
-                    BufferUnpacker mbu = Streams.msgpack.createBufferUnpacker( arr );
-                    try {
-                        value = ( (ObjectTemplate) template ).owner.newInstance();
-                    }
-                    catch ( Exception e ) {
-                        Throwables.propagate( e );
-                    }
-                    template.read( mbu, value );
+                    ObjectTemplate ot = (ObjectTemplate) template;
+                    value = Streams.read( bu, ot );
                 }
                 else {
                     value = template.read( bu, null, true );

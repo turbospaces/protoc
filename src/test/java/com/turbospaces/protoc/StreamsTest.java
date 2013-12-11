@@ -61,11 +61,11 @@ public class StreamsTest {
         u.setTimestamp( System.currentTimeMillis() );
         u.setShortNumber( (short) ( Short.MAX_VALUE / 2 ) );
         u.setOneByte( (byte) 'x' );
-        //u.setPrimaryAddress( a1 );
+        u.setPrimaryAddress( a1 );
         u.setUnsortedAddresses( ImmutableSet.of( a1, a2 ) );
-        //u.setSortedAddresses( ImmutableList.of( a1, a2 ) );
-        //u.setZip2addresses( ImmutableMap.of( a1.getZip(), a1, a2.getZip(), a2 ) );
-        //u.setPrimitiveSet( ImmutableSet.of( "s1", "s2", "s3", "s4" ) );
+        u.setSortedAddresses( ImmutableList.of( a1, a2 ) );
+        u.setZip2addresses( ImmutableMap.of( a1.getZip(), a1, a2.getZip(), a2 ) );
+        u.setPrimitiveSet( ImmutableSet.of( "s1", "s2", "s3", "s4" ) );
 
         User clone = new User();
         byte[] arr = Streams.out( u );

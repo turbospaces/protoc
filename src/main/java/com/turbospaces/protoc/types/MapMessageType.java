@@ -1,7 +1,6 @@
 package com.turbospaces.protoc.types;
 
 import org.msgpack.template.Template;
-import org.msgpack.template.Templates;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -9,6 +8,7 @@ import com.google.common.base.Throwables;
 import com.turbospaces.protoc.InitializingBean;
 import com.turbospaces.protoc.gen.ProtoGenerationContext;
 import com.turbospaces.protoc.serialization.EnumTemplate;
+import com.turbospaces.protoc.serialization.MapTemplate;
 import com.turbospaces.protoc.serialization.ObjectTemplate;
 
 public class MapMessageType implements MessageType, InitializingBean {
@@ -137,7 +137,7 @@ public class MapMessageType implements MessageType, InitializingBean {
                                 vtemplate = getValueType().template();
                             }
                         }
-                        return Templates.tMap( ktemplate, vtemplate );
+                        return new MapTemplate( ktemplate, vtemplate );
                     }
                     catch ( ClassNotFoundException e ) {
                         Throwables.propagate( e );
