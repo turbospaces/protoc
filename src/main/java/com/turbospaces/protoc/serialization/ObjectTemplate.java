@@ -8,18 +8,17 @@ import java.util.Collection;
 import org.msgpack.packer.BufferPacker;
 import org.msgpack.packer.Packer;
 import org.msgpack.template.AbstractTemplate;
+import org.msgpack.template.ListTemplate;
+import org.msgpack.template.SetTemplate;
 import org.msgpack.template.Template;
 import org.msgpack.unpacker.BufferUnpacker;
 import org.msgpack.unpacker.Unpacker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 import com.turbospaces.protoc.MessageDescriptor.FieldDescriptor;
 import com.turbospaces.protoc.gen.GeneratedMessage;
 
 public class ObjectTemplate extends AbstractTemplate<GeneratedMessage> {
-    private static final Logger LOGGER = LoggerFactory.getLogger( ObjectTemplate.class );
     private Class<? extends GeneratedMessage> owner;
 
     public ObjectTemplate(Class<? extends GeneratedMessage> owner) {
@@ -37,10 +36,6 @@ public class ObjectTemplate extends AbstractTemplate<GeneratedMessage> {
             if ( val != null ) {
                 Template template = f.getType().template();
                 if ( template instanceof ObjectTemplate ) {
-                    LOGGER.debug( "writing object={} complex field[tag={}, name={}] = {} ...", v
-                            .getClass()
-                            .getSimpleName(), f.getTag(), f.getName(), val );
-
                     BufferPacker mbp = Streams.msgpack.createBufferPacker();
                     template.write( mbp, val );
                     byte[] mbytes = mbp.toByteArray();
@@ -48,9 +43,6 @@ public class ObjectTemplate extends AbstractTemplate<GeneratedMessage> {
                     System.out.println( mbytes.length );
                 }
                 else {
-                    LOGGER.debug( "writing object={} primitive field[tag={}, name={}] = {}...", v
-                            .getClass()
-                            .getSimpleName(), f.getTag(), f.getName(), val );
                     template.write( pk, val );
                 }
             }
@@ -86,11 +78,6 @@ public class ObjectTemplate extends AbstractTemplate<GeneratedMessage> {
                     BufferUnpacker mbu = Streams.msgpack.createBufferUnpacker( arr );
                     try {
                         value = ( (ObjectTemplate) template ).owner.newInstance();
-                        LOGGER.debug(
-                                "read object={} complex field[tag={},name={}]",
-                                value.getClass().getSimpleName(),
-                                f.getTag(),
-                                f.getName() );
                     }
                     catch ( Exception e ) {
                         Throwables.propagate( e );
@@ -98,11 +85,6 @@ public class ObjectTemplate extends AbstractTemplate<GeneratedMessage> {
                     template.read( mbu, value );
                 }
                 else {
-                    LOGGER.debug(
-                            "read object={} primitive field[tag={},name={}]",
-                            actual.getClass().getSimpleName(),
-                            f.getTag(),
-                            f.getName() );
                     value = template.read( bu, null, true );
                 }
                 actual.setFieldValue( f.getTag(), value );
