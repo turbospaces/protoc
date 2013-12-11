@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,7 +46,7 @@ public class Generator {
     private static Logger logger = LoggerFactory.getLogger( Generator.class );
     private File outDir;
     private String[] paths;
-    private Template enumTemplate, classTemplate;
+    private Template enumTemplate, classTemplate, protoTemplate;
     private String lang = "java";
     private String version = "0.1-SNAPSHOT";
 
@@ -60,6 +61,7 @@ public class Generator {
         try {
             enumTemplate = cfg.getTemplate( lang + "/enum.ftl" );
             classTemplate = cfg.getTemplate( lang + "/class.ftl" );
+            protoTemplate = cfg.getTemplate( lang + "/proto.ftl" );
         }
         catch ( IOException e ) {
             Throwables.propagate( e );
@@ -77,11 +79,22 @@ public class Generator {
         //
         for ( int i = 0; i < paths.length; i++ ) {
             String path = paths[i];
-            InputStream asStream = loadResource( path );
+            File f = loadResource( path );
+            InputStream asStream = new FileInputStream( f );
             try {
                 String text = CharStreams.toString( new InputStreamReader( asStream ) );
                 logger.info( "parsing protoc file = {}", path );
-                ctx.containers.add( parse( text ) );
+                ProtoContainer container = parse( text );
+
+                String n = f.getName().substring( 0, f.getName().indexOf( ".protoc" ) );
+                StringBuilder b = new StringBuilder();
+                String[] parts = n.split( "[-_]" );
+                for ( String s : parts ) {
+                    b.append( Character.toUpperCase( s.charAt( 0 ) ) + s.substring( 1 ) );
+                }
+
+                container.name = b.toString();
+                ctx.containers.add( container );
             }
             finally {
                 asStream.close();
@@ -96,7 +109,7 @@ public class Generator {
         }
 
         for ( String path : allImports ) {
-            InputStream asStream = loadResource( path );
+            InputStream asStream = new FileInputStream( loadResource( path ) );
             try {
                 String text = CharStreams.toString( new InputStreamReader( asStream ) );
                 logger.info( "parsing imported protoc file = {}", path );
@@ -117,6 +130,19 @@ public class Generator {
             Map<String, Object> common = Maps.newHashMap();
             common.put( "pkg", root.pkg );
             common.put( "version", version );
+
+            {
+                StringWriter out = new StringWriter();
+                Map<String, Object> model = Maps.newHashMap();
+                model.put( "proto", root );
+                model.putAll( common );
+                protoTemplate.process( model, out );
+
+                String filename = root.getName() + '.' + lang;
+                File f = new File( pkg, filename );
+                f.getParentFile().mkdirs();
+                Files.write( out.toString().getBytes( Charsets.UTF_8 ), f );
+            }
 
             for ( EnumDescriptor d : enums ) {
                 StringWriter out = new StringWriter();
@@ -168,15 +194,15 @@ public class Generator {
         visitor.visit( protoContext );
         return container;
     }
-    public static InputStream loadResource(String path) throws FileNotFoundException {
+    public static File loadResource(String path) throws FileNotFoundException {
         File f = new File( path );
         if ( f.exists() ) {
-            return new FileInputStream( f );
+            return f;
         }
         else {
-            InputStream asStream = Thread.currentThread().getContextClassLoader().getResourceAsStream( path );
-            Preconditions.checkNotNull( asStream, "no such classpath resource = %s", path );
-            return asStream;
+            URL resource = Thread.currentThread().getContextClassLoader().getResource( path );
+            Preconditions.checkNotNull( resource, "no such classpath resource = %s", path );
+            return new File( resource.getFile() );
         }
     }
 

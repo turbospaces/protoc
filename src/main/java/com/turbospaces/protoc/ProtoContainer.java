@@ -1,5 +1,6 @@
 package com.turbospaces.protoc;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -8,7 +9,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 public class ProtoContainer {
-    public String pkg;
+    public String pkg, name;
     public Set<String> imports = Sets.newLinkedHashSet();
     public Map<String, ServiceDescriptor> services = Maps.newHashMap();
     //
@@ -16,7 +17,19 @@ public class ProtoContainer {
     public Map<String, String> aliases = Maps.newHashMap();
     public Map<String, EnumDescriptor> enums = Maps.newHashMap();
     public Map<String, ConstantDescriptor> constants = Maps.newHashMap();
-
+    
+    public String getPkg() {
+        return pkg;
+    }
+    public String getName() {
+        return name;
+    }
+    public Collection<MessageDescriptor> getMessages() {
+        return messages.values();
+    }
+    public Collection<ConstantDescriptor> getConstants() {
+        return constants.values();
+    }
     @Override
     public String toString() {
         return Objects

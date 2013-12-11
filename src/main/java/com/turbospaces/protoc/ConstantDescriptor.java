@@ -13,6 +13,13 @@ import com.turbospaces.protoc.types.FieldType;
 public class ConstantDescriptor extends NamedDescriptor {
     FieldType type;
     Object value;
+    
+    public Object getValue() {
+        return value;
+    }
+    public FieldType getType() {
+        return type;
+    }
 
     public ConstantDescriptor(String name, String typeRef, String text) {
         this.name = name;
