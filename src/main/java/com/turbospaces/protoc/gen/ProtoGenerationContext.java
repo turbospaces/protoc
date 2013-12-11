@@ -11,8 +11,8 @@ import com.google.common.collect.Sets;
 import com.turbospaces.protoc.EnumDescriptor;
 import com.turbospaces.protoc.InitializingBean;
 import com.turbospaces.protoc.MessageDescriptor;
-import com.turbospaces.protoc.ProtoContainer;
 import com.turbospaces.protoc.MessageDescriptor.FieldDescriptor;
+import com.turbospaces.protoc.ProtoContainer;
 import com.turbospaces.protoc.ServiceDescriptor;
 import com.turbospaces.protoc.ServiceDescriptor.MethodDescriptor;
 import com.turbospaces.protoc.types.FieldType;
@@ -27,6 +27,7 @@ public class ProtoGenerationContext implements InitializingBean {
     private Map<ProtoContainer, Map<String, String>> qualifiedMessages = Maps.newHashMap();
     private Map<ProtoContainer, Map<String, String>> qualifiedEnums = Maps.newHashMap();
     private Map<ProtoContainer, Map<String, String>> qualifiedServices = Maps.newHashMap();
+    private Map<String, MessageDescriptor> allMessages = Maps.newHashMap();
 
     public String qualifiedMessageReference(String ref) {
         Collection<Map<String, String>> messages = qualifiedMessages.values();
@@ -73,6 +74,7 @@ public class ProtoGenerationContext implements InitializingBean {
             for ( MessageDescriptor m : messages ) {
                 String q = pkg + "." + m.getName();
                 ensureUnique( q );
+                allMessages.put( m.getName(), m );
                 qMessages.put( m.getName(), q );
             }
             for ( EnumDescriptor e : enums ) {
@@ -96,6 +98,24 @@ public class ProtoGenerationContext implements InitializingBean {
             Collection<MessageDescriptor> messages = c.messages.values();
             for ( MessageDescriptor m : messages ) {
                 Collection<FieldDescriptor> values = m.getFieldDescriptors().values();
+
+                Collection<FieldDescriptor> allHierarchyFields = Sets.newHashSet();
+                String parent = m.getParent();
+                while ( parent != null ) {
+                    String e = qualifiedEnumReference( parent );
+                    check( e == null, "parent can't extend enum=%s", e );
+                    MessageDescriptor pdescriptor = allMessages.get( parent );
+                    check( pdescriptor != null, "there is no such parent class=%s defined", parent );
+                    allHierarchyFields.addAll( pdescriptor.getFieldDescriptors().values() );
+                    parent = pdescriptor.getParent();
+                }
+
+                Set<Integer> uniqueTags = Sets.newHashSet();
+                for ( FieldDescriptor hf : allHierarchyFields ) {
+                    check( !uniqueTags.contains( hf.getTag() ), "hierarchy is not consistent, field with tag=%s already defined", hf.getTag() );
+                    uniqueTags.add( hf.getTag() );
+                }
+
                 for ( FieldDescriptor f : values ) {
                     MessageType type = f.getType();
                     if ( type instanceof ObjectMessageType ) {

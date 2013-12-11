@@ -59,6 +59,10 @@ public class ${clazz.name} extends <#if clazz.parent??>${clazz.parent}<#else>Abs
     </#list>
     @Override
     public Object getFieldValue(int tag) {
+        <#if clazz.parent??>
+        FieldDescriptor d = super.getFieldDescriptor(tag);
+        if( d != null ) return super.getFieldValue(tag);
+        </#if>
         switch(tag) {
            <#list fields.entrySet() as entry>
            <#assign v = entry.value>
@@ -71,6 +75,10 @@ public class ${clazz.name} extends <#if clazz.parent??>${clazz.parent}<#else>Abs
     @SuppressWarnings("unchecked")
     @Override
     public void setFieldValue(int tag, Object value) {
+        <#if clazz.parent??>
+        FieldDescriptor d = super.getFieldDescriptor(tag);
+        if( d != null ) { super.setFieldValue(tag, value); return;}
+        </#if>
         switch(tag) {
            <#list fields.entrySet() as entry>
            <#assign v = entry.value>
@@ -82,18 +90,27 @@ public class ${clazz.name} extends <#if clazz.parent??>${clazz.parent}<#else>Abs
     }
     @Override
     public FieldDescriptor getFieldDescriptor(int tag) {
+        <#if clazz.parent??>
+        FieldDescriptor d = super.getFieldDescriptor(tag);
+        if( d != null ) return d;
+        </#if>
         switch(tag) {
            <#list fields.entrySet() as entry>
            <#assign v = entry.value>
            <#assign k = entry.key>
            case ${k} : { return FIELD_DESCRIPTOR_${v.name?upper_case}; }
            </#list>
-           default : throw new RuntimeException("there is no such field with tag = " + tag);
+           default : return null;
         }
     }
     @Override
     public Collection<FieldDescriptor> getAllDescriptors() {
-       return DESCRIPTORS;
+       Collection<FieldDescriptor> all = new LinkedList<FieldDescriptor>();
+       <#if clazz.parent??>       
+       all.addAll(super.getAllDescriptors());       
+       </#if>
+       all.addAll(DESCRIPTORS);
+       return all;
     }
     @Override
     public ObjectTemplate template() {

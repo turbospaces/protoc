@@ -7,22 +7,28 @@ const double C3 = 123.14;
 
 message Ack {}
 
-message User extends Ack {
+message UserBase extends Ack {
   string firstName = 1;
   string secondName = 2;
   string middleName = 3;
-  int32 age = 4;
-  bool enabled = 5;
-  double amount1 = 6;
-  float amount2 = 7;
-  bdecimal value = 8;
-  int64 timestamp = 9;
-  int16 shortNumber = 10;
-  byte oneByte = 11;
-  Address primaryAddress = 12;
-  set[Address] unsortedAddresses = 13;
-  list[Address] sortedAddresses = 14;
-  map[string,Address] zip2addresses = 15;
+}
+
+message UserAndAddress extends UserBase {
+  Address primaryAddress = 4;
+  set[Address] unsortedAddresses =5;
+  list[Address] sortedAddresses = 6;
+  map[string,Address] zip2addresses = 7;
+}
+
+message User extends UserAndAddress {
+  int32 age = 8;
+  bool enabled = 9;
+  double amount1 = 10;
+  float amount2 = 11;
+  bdecimal value = 12;
+  int64 timestamp = 13;
+  int16 shortNumber = 14;
+  byte oneByte = 15;  
   set[string] primitiveSet = 16;
 }
 

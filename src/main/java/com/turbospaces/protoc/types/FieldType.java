@@ -54,11 +54,10 @@ public enum FieldType {
             case STRING:
                 return Templates.TString;
             case ENUM:
-                throw new Error();
             case MESSAGE:
+            default:
                 throw new Error();
         }
-        throw new Error();
     }
     public String javaTypeAsString() {
         switch ( this ) {
@@ -87,10 +86,9 @@ public enum FieldType {
             case BINTEGER:
                 return BigInteger.class.getSimpleName();
             case ENUM:
-                throw new Error();
             case MESSAGE:
+            default:
                 throw new Error();
         }
-        throw new Error();
     }
 }
