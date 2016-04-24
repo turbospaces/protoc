@@ -1,6 +1,6 @@
 grammar ProtoParser;
 
-proto: (import_def)* (package_def)? (constant_def | enum_def |message_def | alias_def | service_def )+ EOF;
+proto: (import_def)* (package_def)? (constant_def | enum_def |message_def | service_def )+ EOF;
 
 literal_value: BOOLEAN_LITERAL | INTEGER_LITERAL | STRING_LITERAL | FLOAT_LITERAL;
 
@@ -21,7 +21,8 @@ enum_member_tag: enum_member EQUALS enum_tag;
 enum_member: IDENTIFIER;
 enum_tag: TAG;
 
-message_def: MESSAGE_LITERAL message_name message_parent BLOCK_OPEN (message_field_def)* BLOCK_CLOSE;
+message_def: messsage_type message_name message_parent BLOCK_OPEN (message_field_def)* BLOCK_CLOSE;
+messsage_type: MESSAGE_LITERAL | ERROR_LITERAL;
 message_name: IDENTIFIER;
 message_parent: (EXTEND_LITERAL message_parent_message)?;
 message_parent_message: IDENTIFIER;
@@ -42,10 +43,6 @@ service_method_req: (collection_map_value)?;
 service_method_resp : collection_map_value;
 service_method_throws: (THROWS_LITEARAL service_method_excp (COMMA service_method_excp)* )?;
 service_method_excp: IDENTIFIER;
-
-alias_def: ALIAS_LITERAL alias_source EQUALS alias_destination ITEM_TERMINATOR;
-alias_source: IDENTIFIER;
-alias_destination: IDENTIFIER;
 
 collection_map_value: collection_map|IDENTIFIER|TYPE_LITERAL;
 collection_map: collection|map;
@@ -69,8 +66,8 @@ ITEM_TERMINATOR : ';' ;
 
 CONST_LITERAL: 'const';
 PACKAGE_LITERAL: 'package';
-ALIAS_LITERAL: 'alias';
 MESSAGE_LITERAL : 'message' ;
+ERROR_LITERAL : 'error';
 EXTEND_LITERAL : 'extends' ;
 SERVICE_LITERAL: 'service';
 DEF_LITERAL: 'def';
@@ -81,7 +78,10 @@ IMPORT_LITERAL: 'import';
 BOOLEAN_LITERAL: 'true' | 'false';
 COLLECTION_LITERAL: 'set' | 'list';
 MAP_LITERAL: 'map';
-TYPE_LITERAL: 'byte' | 'int16' | 'int32' | 'int64' | 'float' | 'double' | 'string' | 'bool' | 'bdecimal' | 'binteger' | 'binary' | 'date';
+TYPE_LITERAL: 'byte' | 'int16' | 'int32' | 'int64' | 'float' | 'double' | 'string' | 'boolean' | 'bigdecimal' | 'biginteger' | 'binary';
+JAVA_RESERVERED_KEYWORDS: 'this' | 'switch' | 'case' | 'abstract' | 'assert' | 'break' | 'case' | 'class' | 'continue' | 'default' | 'do' | 'else' | 'final' | 'finally' | 'if' | 'implements' | 'instanceof' | 'interface' | 'short' | 'long' | 'integer' | 'native' | 'new' | 'private' | 'protected' | 'public' | 'return' | 'static' | 'super' | 'synchronized' | 'throw' | 'transient' | 'try' | 'void' | 'volatile' | 'while';
+
+RESERVED_KEYWORDS_LITERAL: MAP_LITERAL | COLLECTION_LITERAL | CONST_LITERAL | PACKAGE_LITERAL | MESSAGE_LITERAL | EXTEND_LITERAL | SERVICE_LITERAL | DEF_LITERAL | THROWS_LITEARAL | ENUM_LITERAL | IMPORT_LITERAL | BOOLEAN_LITERAL;
 
 TAG: ('0' | '1'..'9' ('0'..'9')*);
 IDENTIFIER: ('a'..'z' | 'A'..'Z' ) ('a'..'z' | 'A'..'Z' | '_' | '0'..'9')*;

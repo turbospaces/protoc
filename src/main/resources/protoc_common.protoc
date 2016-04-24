@@ -1,6 +1,0 @@
-package com.turbospaces.common;
-
-message Money {
-   bdecimal value = 1;
-   string currency = 2;
-}

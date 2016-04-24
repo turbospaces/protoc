@@ -1,0 +1,67 @@
+import "common.lang";
+package com.turbospaces.demo;
+
+const boolean C1 = true;
+const string C2 = "welcome";
+const double C3 = 123.14;
+
+enum Colors {
+  GREEN = 1,
+  WRITE = 2,
+  YELLOW = 3,
+  BLACK = 4
+}
+
+message Address extends Any {
+  string address = 1;
+  string zip = 2;
+  string country = 3;
+  boolean primary = 4;
+  set[string] details1 = 5;
+  list[string] details2 = 6;
+  map[string, int64] details3 = 7;
+  biginteger bint = 8;
+  Colors color = 9;
+}
+
+message UserBase extends Any {
+  string firstName = 1;
+  string secondName = 2;
+  string middleName = 3;
+}
+
+message UserAndAddress extends UserBase {
+  Address primaryAddress = 4;
+  set[Address] unsortedAddresses =5;
+  list[Address] sortedAddresses = 6;
+  map[string,Address] zip2addresses = 7;
+}
+
+message User extends UserAndAddress {
+  int32 age = 8;
+  boolean enabled = 9;
+  double amount1 = 10;
+  float amount2 = 11;
+  bigdecimal value = 12;
+  int64 timestamp = 13;
+  int16 shortNumber = 14;
+  byte oneByte = 15;  
+  set[string] primitiveSet = 16;
+  binary payload = 17;
+}
+
+error DuplicateUserError {}
+error AnotherSystemError extends SystemError {
+  string reason = 2;
+}
+
+service MockService {
+  def hello() : string;
+}
+
+service AuthService extends MockService {
+  def ping() : Any;
+  def addUser(User) : Any throws SystemError, DuplicateUserError;
+  def getCurrentUser() : User throws SystemError;
+  def getAllUserByFirstName(string) : map[string, User] throws SystemError;
+}

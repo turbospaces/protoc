@@ -1,0 +1,14 @@
+package com.turbospaces.common;
+
+const double PI = 3.14159265358979323846;
+
+message Any {}
+
+message Money extends Any {
+   bigdecimal value = 1;
+   string currency = 2;
+}
+
+error SystemError {
+  string text = 1;
+}
