@@ -1,0 +1,30 @@
+package com.mycompamy.example.service.login;
+
+import "protolang_common.lang";
+import "common_types.lang";
+
+message LoginRequestData extends PayloadBase {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponseData extends PayloadBase {
+  string token = 1;
+  string expires = 2;
+  int32 inactivity = 3;
+}
+
+error BadCredentialsError {}
+error UserNotFoundError {}
+error UserIsLockedError {}
+error AnotherSystemError extends SystemError {
+  string reason = 2;
+}
+
+service BaseLoginService {
+  def loggedUsers() : int32;
+}
+
+service LoginManagementService extends BaseLoginService {
+  def login(LoginRequestData) : LoginResponseData throws SystemError, BadCredentialsError, UserNotFoundError, UserIsLockedError, AnotherSystemError ;
+}

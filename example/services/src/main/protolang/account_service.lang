@@ -1,0 +1,45 @@
+package com.mycompamy.example.service.account;
+
+import "protolang_common.lang";
+import "common_types.lang";
+
+message GetUserDetailsRequestData extends PayloadBase {
+  string username = 1;
+}
+
+message GetUserFriendsRequestData extends PayloadBase {
+  string username = 1;
+  int16 maxRecords = 2 [default = 10];
+}
+
+message GetUserDetailsResponseData extends PayloadBase {
+  User user = 1;
+}
+
+message GetUserFriendsResponseData extends PayloadBase {
+  set[User] friends = 2;
+}
+
+message AccountServiceRequest extends RequestBase {
+  string oathToken = 10;
+  anyOf[PayloadBase] payload = 11 [required = true, json_type = {{QUALIFIER}}];
+}
+
+message AccountServiceResponse extends io.protolang.ResponseBase {
+  anyOf[PayloadBase] payload = 10 [required = {{YES}}, json_type = {{QUALIFIER}}];
+}
+
+error DuplicateUserError {}
+error AnotherSystemError extends SystemError {
+  string reason = 2;
+}
+
+service BaseAccountService {
+  def usersCount() : int32;
+}
+
+service AccountManagementService extends BaseAccountService {
+  def registerUser(User) : boolean throws SystemError, DuplicateUserError;
+  def getActiveUsers() : set[User] throws SystemError;
+  def getUserDetails(GetUserDetailsRequestData) : GetUserDetailsResponseData throws SystemError, AnotherSystemError;
+}

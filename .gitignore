@@ -1,4 +1,33 @@
-/target
-.classpath
 .project
-/.settings
+.classpath
+.settings/
+.cvsignore
+.DS_Store
+test-output
+target/**
+bin/**
+*.orig
+**/target/**
+
+#bamboo creates this file for own purposes
+build-number.txt
+release.properties
+pom.xml.*
+*.lck
+log\*
+*.log
+**/*.bak
+*.bak
+etc/**
+**/rebel.xml
+
+#IntelliJ IDEA settinds
+**/.idea/
+.idea
+**/*.iml
+**/*.iws
+**/*.ipr
+atlassian-ide-plugin.xml
+test-output/
+target/
+bin/

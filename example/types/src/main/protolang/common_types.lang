@@ -1,0 +1,87 @@
+package com.mycompamy.example.types;
+
+import "protolang_common.lang";
+
+const int32 AGE = 18;
+const byte PRIORITY_MIN = 1;
+const byte PRIORITY_NORMAL = 2;
+const byte PRIORITY_MAX = 3;
+const double EMPTY_BALANCE = 0.0;
+
+enum Country {
+  UKRAINE = 1;
+  ENGLAND = 2;
+  FRANCE = 3;
+  ITALY = 4;
+  USA = 5;
+}
+
+enum Gender {
+  MALE = 1;
+  FEMALE = 2;
+}
+
+message ContactTypeByEmail {
+  string email = 1;
+}
+
+message ContactTypeByPhone {
+  string mobile = 1;
+  string home = 2;
+  string work = 3;
+}
+
+message Money extends io.protolang.Money {
+  int32 precision = 3;
+  int32 scale = 4;
+}
+
+message Address {
+  string address = 1;
+  string zip = 2;
+  Country country = 3;
+  boolean primary = 4 [default = {{NO}}];
+  set[string] details1 = 5;
+  list[string] details2 = 6;
+  map[string, int64] details3 = 7;
+}
+
+message UserBase {
+  string firstName = 1;
+  string secondName = 2;
+  string middleName = 3;
+  string email = 4 [required = true];
+}
+
+message UserAndAddress extends UserBase {
+  Address primaryAddress = 11;
+  set[Address] inactiveAddresses = 12;
+  list[Address] activeAddresses = 13;
+  map[string,Address] allAddresses = 14;
+}
+
+message User extends UserAndAddress {
+  int32 age = 21 [default = {{AGE}}];
+  boolean enabled = 22 [default = {{io.protolang.YES}}];
+  int64 createdTimestamp = 23;
+  int64 updatedTimestamp = 24;
+  int16 profileUpdatesCount = 25 [default = 0];
+  byte priority = 26 [default = {{PRIORITY_NORMAL}}];
+  set[string] tags = 27;
+  binary avatarPhoto = 28;
+  oneOf [
+     ContactTypeByEmail,
+     ContactTypeByPhone
+  ] contactType = 29 [json_type = "type"];
+  double balance = 30 [default = {{EMPTY_BALANCE}}];
+  double creditBalance = 31 [default = 0.0];
+  string lastLogin = 32;
+  set[string] friends = 33;
+  boolean subsribeToNews = 34 [default = {{NO}}];
+  int64 loginCount = 35 [default = {{ZERO}}];
+  string currency = 36 [default = {{CURRENCY_EUR}}];
+  byte deletePriority = 37 [default = {{io.protolang.PRIORITY_NORMAL}}];
+  Money redeemMax = 38;
+}
+
+message PayloadBase {}
