@@ -80,11 +80,12 @@ public class Generator {
 
     private final File out;
     private final File[] inputs;
-    private final boolean debug;
     private final String version;
-    private final boolean failOnParseErrors;
 
-    public Generator(File out, File[] inputs, boolean debug, String version, boolean failOnParseErrors) {
+    private boolean debug;
+    private boolean failOnParseErrors = true;
+
+    public Generator(File[] inputs, File out, String version) {
         List<File> in = new ArrayList<File>();
         for ( File file : inputs ) {
             if ( !file.exists() )
@@ -97,13 +98,16 @@ public class Generator {
             }
         }
         this.out = out;
-        this.debug = debug;
         this.inputs = in.toArray( new File[in.size()] );
         this.version = version;
-        this.failOnParseErrors = failOnParseErrors;
     }
-
-    public void run() throws Exception {
+    public void setDebug(Boolean yesNo) {
+        this.debug = yesNo;
+    }
+    public void setFailOnParseErrors(Boolean yesNo) {
+        this.failOnParseErrors = yesNo;
+    }
+    public void generate() throws Exception {
         //
         // parse all imports first
         //
@@ -127,10 +131,10 @@ public class Generator {
             }
         }
 
-        for ( File f : inputs ) {
-            try (InputStream asStream = new FileInputStream( f )) {
-                String containerName = toContainerName( f.getName() );
-                Antlr4GenVisitor visitor = new Antlr4GenVisitor( codeModel, containerName, importedModels, f, version );
+        for ( File input : inputs ) {
+            try (InputStream asStream = new FileInputStream( input )) {
+                String containerName = toContainerName( input.getName() );
+                Antlr4GenVisitor visitor = new Antlr4GenVisitor( codeModel, containerName, importedModels, input, version );
                 parse( asStream, visitor, debug );
             }
         }
@@ -146,7 +150,7 @@ public class Generator {
             for ( JDefinedClass next : classes ) {
                 if ( next.isClass() && !next.isInterface() && next.getClassType() != EClassType.ENUM ) {
                     Collection<JFieldVar> fields = next.fields().values();
-                    TreeMap<Integer, JFieldVar> fieldsOrder = new TreeMap<Integer, JFieldVar>();
+                    TreeMap<Integer, JFieldVar> tagToFields = new TreeMap<Integer, JFieldVar>();
 
                     //
                     // try to detect duplicate field(s) by tag in class
@@ -155,9 +159,9 @@ public class Generator {
                         JMods mods = f.mods();
                         if ( !mods.isStatic() ) {
                             int fieldTag = tag( f, next, codeModel );
-                            if ( fieldsOrder.containsKey( fieldTag ) )
+                            if ( tagToFields.containsKey( fieldTag ) )
                                 throw new IllegalStateException( String.format( "field with tag = %s already defined in this message", fieldTag ) );
-                            fieldsOrder.put( fieldTag, f );
+                            tagToFields.put( fieldTag, f );
                         }
                     }
 
@@ -188,7 +192,7 @@ public class Generator {
                                                     throw new IllegalStateException( format( "field with tag = %s already defined in %s",
                                                                                              fieldTag,
                                                                                              parent.fullName() ) );
-                                                fieldsOrder.put( pFieldTag, pf );
+                                                tagToFields.put( pFieldTag, pf );
                                             }
                                         }
                                     }
@@ -229,9 +233,9 @@ public class Generator {
                     JVar readTagVar = readBody.decl( codeModel.INT, TAG );
                     JVar readTagValueVar = readBody.decl( codeModel.ref( Object.class ), value, JExpr._null() );
 
-                    readBody.assign( readTagVar, JExpr.ref( var ).invoke( readIntLiteral ) );
-                    readBody._if( JExpr.ref( readTagVar ).ne( JExpr.lit( 0 ) ) )._then().assign( readTagValueVar,
-                                                                                                 JExpr.ref( var ).invoke( readObject ) );
+                    JFieldRef varField = JExpr.ref( var );
+                    readBody.assign( readTagVar, varField.invoke( readIntLiteral ) );
+                    readBody._if( JExpr.ref( readTagVar ).ne( JExpr.lit( 0 ) ) )._then().assign( readTagValueVar, varField.invoke( readObject ) );
                     JSwitch readTagSwitch = readBody._switch( readTagVar );
                     readTagSwitch._case( JExpr.lit( 0 ) ).body()._return();
 
@@ -240,13 +244,13 @@ public class Generator {
                     m3.param( int.class, var );
                     m4.param( int.class, var );
                     m4.param( Object.class, value );
-                    JSwitch s1 = m1.body()._switch( JExpr.ref( var ) );
-                    JSwitch s2 = m2.body()._switch( JExpr.ref( var ) );
-                    JSwitch s3 = m3.body()._switch( JExpr.ref( var ) );
-                    JSwitch s4 = m4.body()._switch( JExpr.ref( var ) );
+                    JSwitch s1 = m1.body()._switch( varField );
+                    JSwitch s2 = m2.body()._switch( varField );
+                    JSwitch s3 = m3.body()._switch( varField );
+                    JSwitch s4 = m4.body()._switch( varField );
 
                     next._implements( codeModel.ref( Externalizable.class ) );
-                    for ( Entry<Integer, JFieldVar> e : fieldsOrder.entrySet() ) {
+                    for ( Entry<Integer, JFieldVar> e : tagToFields.entrySet() ) {
                         JFieldVar f = e.getValue();
                         JFieldRef constTag = JExpr.ref( toConstTagName( f ) );
                         String constFieldName = toConstFieldName( f );
@@ -254,8 +258,8 @@ public class Generator {
 
                         jsonOrderArray.param( JExpr.direct( next.name() + "." + constFieldName ) );
 
-                        writeMethod.body().invoke( JExpr.ref( var ), writeIntLiteral ).arg( constTag );
-                        writeMethod.body().invoke( JExpr.ref( var ), writeObjectLiteral ).arg( getter );
+                        writeMethod.body().invoke( varField, writeIntLiteral ).arg( constTag );
+                        writeMethod.body().invoke( varField, writeObjectLiteral ).arg( getter );
 
                         JCase case1 = s1._case( constTag );
                         JCase case2 = s2._case( JExpr.ref( constFieldName ) );
@@ -271,7 +275,7 @@ public class Generator {
                         case5.body().add( setInvocation )._break();
                     }
 
-                    writeMethod.body().invoke( JExpr.ref( var ), writeIntLiteral ).arg( JExpr.lit( 0 ) );
+                    writeMethod.body().invoke( varField, writeIntLiteral ).arg( JExpr.lit( 0 ) );
 
                     JInvocation err = JExpr._new( codeModel.ref( IllegalArgumentException.class ) );
                     s1._default().body()._throw( err );
@@ -359,8 +363,6 @@ public class Generator {
         final ProtoParserLexer lexer = new ProtoParserLexer( input );
         final CommonTokenStream tokens = new CommonTokenStream( lexer );
         final ProtoParserParser parser = new ProtoParserParser( tokens );
-        parser.setTrace( trace );
-        parser.removeErrorListeners();
         final List<String> parseErrros = new LinkedList<String>();
         parser.addErrorListener( new BaseErrorListener() {
             @Override
@@ -386,6 +388,7 @@ public class Generator {
             }
             throw new IllegalStateException( "schema has errors" );
         }
+        parser.setTrace( trace );
         ProtoContext protoContext = parser.proto();
         visitor.visit( protoContext );
     }
@@ -438,7 +441,9 @@ public class Generator {
         }
 
         File out = new File( output );
-        Generator g = new Generator( out, in, debug, version, failOnParseErrors );
-        g.run();
+        Generator g = new Generator( in, out, version );
+        g.setDebug( debug );
+        g.setFailOnParseErrors( failOnParseErrors );
+        g.generate();
     }
 }

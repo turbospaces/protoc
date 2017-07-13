@@ -91,7 +91,7 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
     @Override
     public Void visitPackage_def(Package_defContext ctx) {
         try {
-            String pkg = ctx.package_name().getText().trim();
+            String pkg = ctx.package_name().getText();
             JDefinedClass container = codeModel._package( pkg )._interface( containerName );
             logger.info( "Proto({}.{})", container._package().name(), container.name() );
             return super.visitPackage_def( ctx );
@@ -108,7 +108,7 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
         ProtoTypes type = ProtoTypes.valueOf( constType.toUpperCase() );
 
         ProtoContext pkgCtx = (ProtoContext) ctx.getParent();
-        String pkg = pkgCtx.package_def().package_name().QUALIFIED_IDENTIFIER().getText().trim();
+        String pkg = pkgCtx.package_def().package_name().QUALIFIED_IDENTIFIER().getText();
         JDefinedClass container = codeModel._package( pkg )._getClass( containerName );
 
         int modifier = JMod.PUBLIC | JMod.STATIC | JMod.FINAL;
@@ -159,6 +159,14 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
             String fieldName = ctx.message_field_name().IDENTIFIER().getText();
             List<Message_field_optionsContext> optionsCtxs = ctx.message_field_options();
 
+            Message_defContext mCtx = ( (Message_defContext) ctx.getParent().getRuleContext() );
+            ProtoContext pkgCtx = (ProtoContext) mCtx.getParent();
+            String pkg = pkgCtx.package_def().package_name().QUALIFIED_IDENTIFIER().getText();
+            JPackage jPackage = codeModel._package( pkg );
+            String msgName = mCtx.message_name().IDENTIFIER().getText();
+            JDefinedClass m = jPackage._getClass( msgName );
+            JDefinedClass container = jPackage._getClass( containerName );
+
             Message_field_requiredContext requiredCtx = null;
             Message_field_default_valueContext defaultValueCtx = null;
             Message_field_json_typeContext jsonTypeCtx = null;
@@ -180,17 +188,8 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
             String jsonType = null;
 
             if ( jsonTypeCtx != null ) {
-                String jsonTypeLiteral = jsonTypeCtx.literal_value().getText();
-                jsonType = jsonTypeLiteral.substring( 1, jsonTypeLiteral.length() - 1 );
+                jsonType = parseString( container, jsonTypeCtx.literal_value() );
             }
-
-            Message_defContext mCtx = ( (Message_defContext) ctx.getParent().getRuleContext() );
-            ProtoContext pkgCtx = (ProtoContext) mCtx.getParent();
-            String pkg = pkgCtx.package_def().package_name().QUALIFIED_IDENTIFIER().getText().trim();
-            JPackage jPackage = codeModel._package( pkg );
-            String msgName = mCtx.message_name().IDENTIFIER().getText();
-            JDefinedClass m = jPackage._getClass( msgName );
-            JDefinedClass container = jPackage._getClass( containerName );
 
             AbstractJClass fieldType = null;
             JFieldVar field = null;
@@ -218,7 +217,6 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
                     ProtoTypes type = ProtoTypes.valueOf( collectionMapValueCtx.TYPE_LITERAL().getText().toUpperCase() );
                     fieldInit = parse( type, container, defaultValueCtx.literal_value() );
                 }
-
                 fieldType = resolveType( container, collectionMapValueCtx );
             }
 
@@ -302,7 +300,7 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
         try {
             String name = ctx.enum_name().IDENTIFIER().getText();
             ProtoContext pkgCtx = (ProtoContext) ctx.getParent();
-            String pkg = pkgCtx.package_def().package_name().QUALIFIED_IDENTIFIER().getText().trim();
+            String pkg = pkgCtx.package_def().package_name().QUALIFIED_IDENTIFIER().getText();
             JPackage jPackage = codeModel._package( pkg );
             JDefinedClass m = codeModel._package( pkg )._enum( name );
             JDefinedClass container = jPackage._getClass( containerName );
@@ -369,7 +367,7 @@ public class Antlr4ProtoVisitor extends ProtoParserBaseVisitor<Void> {
     public Void visitService_method_def(Service_method_defContext ctx) {
         String methodName = ctx.service_method_name().IDENTIFIER().getText();
         ProtoContext pkgCtx = (ProtoContext) ctx.getParent().getParent();
-        String pkg = pkgCtx.package_def().package_name().QUALIFIED_IDENTIFIER().getText().trim();
+        String pkg = pkgCtx.package_def().package_name().QUALIFIED_IDENTIFIER().getText();
         JPackage jPackage = codeModel._package( pkg );
         JDefinedClass container = jPackage._getClass( containerName );
 

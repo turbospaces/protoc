@@ -3,7 +3,7 @@
 
     <parent>
         <groupId>io.protolang</groupId>
-        <artifactId>protolang-parent</artifactId>
+        <artifactId>protolang-example-parent</artifactId>
         <version>0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>

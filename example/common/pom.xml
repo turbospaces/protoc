@@ -75,19 +75,28 @@
                 <version>${project.version}</version>
                 <executions>
                     <execution>
-                        <phase>generate-sources</phase>
+                        <id>generate-prolang-classes</id>
                         <goals>
                             <goal>gen</goal>
                         </goals>
                         <configuration>
-                            <output>${project.basedir}/target/generated-sources/protolang</output>
-                            <inputs>
-                                <input>${project.basedir}/src/main/protolang/protolang_common.lang</input>
-                            </inputs>
                             <debug>true</debug>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>generated-legacy-schemas</id>
+                        <goals>
+                            <goal>gen-avro</goal>
+                            <goal>gen-json-schema</goal>
+                        </goals>
+                    </execution>
                 </executions>
+                <configuration>
+                    <output>${project.basedir}/target/generated-sources/protolang</output>
+                    <inputs>
+                        <input>${project.basedir}/src/main/protolang/protolang_common.lang</input>
+                    </inputs>
+                </configuration>
             </plugin>
         </plugins>
     </build>
